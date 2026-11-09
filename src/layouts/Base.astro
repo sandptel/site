@@ -43,11 +43,18 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
     {wash && <><div class="wash ember" aria-hidden="true"></div><div class="wash lichen" aria-hidden="true"></div></>}
     <header class="top">
       <a class="mark" href="/">sand<span>ptel</span></a>
+      <!-- now reading: compass for direction, the stop's mark, what it is, and how far down the page you are -->
+      <div class="nowr" aria-hidden="true">
+        <span class="nr-dial"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" /><g class="needle"><path class="nb" d="M12 3.5 L14 12 L12 20.5 L10 12 Z" /><path class="nt" d="M12 3.5 L14 12 L10 12 Z" /></g></svg></span>
+        <span class="nr-seal"></span>
+        <span class="nr-text"><span class="nr-name"><i class="arr"></i><b></b></span><small class="nr-desc"></small></span>
+        <span class="explored" hidden title="Branches you've opened on this page">
+          <svg viewBox="0 0 20 20"><circle class="trk" cx="10" cy="10" r="7.5" /><circle class="val" cx="10" cy="10" r="7.5" pathLength="1" /></svg>
+          <span><b data-explored>0</b><span class="sep">/</span><span data-explore-total>0</span></span>
+        </span>
+        <span class="nr-track"><i></i></span>
+      </div>
       <div class="right">
-        <p class="heading mono" aria-hidden="true">
-          <svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5" fill="none" stroke="var(--rule)" /><g class="needle"><path d="M11 3 L13 11 L11 19 L9 11 Z" fill="none" stroke="var(--accent)" stroke-width="1" /><path d="M11 3 L13 11 L9 11 Z" fill="var(--ember)" /></g></svg>
-          <span>heading:</span> <b></b>
-        </p>
         <nav aria-label="Primary">
           <ul>{nav.map(([href, label]) => <li><a href={href} aria-current={current(href)}>{label}</a></li>)}</ul>
         </nav>
@@ -84,8 +91,21 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
         <a href="https://github.com/sandptel">github ↗</a>
         <a href="https://linkedin.com/in/sandptel">linkedin ↗</a>
       </span>
-      <span class="mono">the tree ends here, for now · I use NixOS, btw</span>
+      <span class="mono">I use NixOS, btw · press <kbd>?</kbd> for keys</span>
     </footer>
+    <div class="keys-help" role="dialog" aria-modal="true" aria-labelledby="keys-h" hidden>
+      <div class="kh-card">
+        <p class="kicker" id="keys-h">keyboard</p>
+        <dl>
+          <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>next / previous stop, or paragraph that branches</dd></div>
+          <div><dt><kbd>x</kbd></dt><dd>open or fold the card you're on</dd></div>
+          <div><dt><kbd>t</kbd></dt><dd>next base16 theme</dd></div>
+          <div><dt><kbd>d</kbd></dt><dd>light / dark</dd></div>
+          <div><dt><kbd>g</kbd></dt><dd>rewind to the top</dd></div>
+          <div><dt><kbd>esc</kbd></dt><dd>close this, or fold a branch</dd></div>
+        </dl>
+      </div>
+    </div>
     <script>
       import '../scripts/site.js';
       import '../scripts/branches.js';

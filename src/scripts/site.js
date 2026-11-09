@@ -62,7 +62,7 @@ if (theme) {
 
 /* ---------- top bar gets a rule once you scroll ---------- */
 const top = $('.top');
-const onScroll = () => top.classList.toggle('scrolled', scrollY > 8);
+const onScroll = () => { top.classList.toggle('scrolled', scrollY > 8); top.classList.toggle('reading', !!$('.nowr.on')); };
 addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
 /* ---------- logo wall: stagger in, tilt toward the pointer ---------- */
@@ -116,3 +116,98 @@ $$('.copy[data-copy]').forEach(btn => btn.addEventListener('click', async () => 
   btn.classList.add('done');
   setTimeout(() => { btn.classList.remove('done'); label.textContent = 'copy'; }, 1800);
 }));
+
+/* ---------- a small notice, for moments worth one line ---------- */
+function notice(html, ms = 5200) {
+  const n = document.createElement('div');
+  n.className = 'notice'; n.setAttribute('role', 'status'); n.innerHTML = html;
+  document.body.appendChild(n);
+  requestAnimationFrame(() => n.classList.add('on'));
+  setTimeout(() => { n.classList.remove('on'); setTimeout(() => n.remove(), 450); }, ms);
+}
+document.addEventListener('explored:all', () => notice('<b>Every branch on this page, opened.</b> Thank you for reading closely.'));
+
+/* ---------- hero: the word "branch" demonstrates itself once, then on hover ---------- */
+const demo = $('.demo-tw'), hb = $('.hero-branch'), hero = $('#hero');
+if (demo && hb && hero) {
+  const place = () => {
+    const h = hero.getBoundingClientRect(), w = demo.getBoundingClientRect();
+    const x = w.left - h.left, y = w.bottom - h.top;
+    const left = Math.max(0, Math.min(x - 40, h.width - 320));
+    hb.style.left = left + 'px'; hb.style.top = (y + 26) + 'px';
+    const svg = $('.hb-line', hb), ax = x + w.width / 2 - left;
+    svg.setAttribute('width', Math.max(ax, 60) + 20); svg.setAttribute('height', 28);
+    $('path', svg).setAttribute('d', `M${ax},-22 V2`);
+  };
+  let hideT;
+  const show = on => { clearTimeout(hideT); if (on) place(); hb.classList.toggle('on', on); demo.classList.toggle('hot', on); demo.setAttribute('aria-expanded', String(on)); };
+  demo.addEventListener('mouseenter', () => show(true));
+  demo.addEventListener('focus', () => show(true));
+  demo.addEventListener('click', () => { show(!hb.classList.contains('on')); window.__branches?.mark('b:hero-branch'); });
+  [demo, hb].forEach(el => el.addEventListener('mouseleave', () => { hideT = setTimeout(() => show(false), 500); }));
+  hb.addEventListener('mouseenter', () => clearTimeout(hideT));
+  demo.addEventListener('blur', () => show(false));
+  addEventListener('resize', () => hb.classList.contains('on') && place());
+  // once, early: show what a branch is, then fold it away
+  let touched = false;
+  ['pointerdown', 'wheel', 'keydown', 'touchstart'].forEach(e => addEventListener(e, () => touched = true, { once: true, passive: true }));
+  if (!reduce()) setTimeout(() => { if (!touched && scrollY < 80) { show(true); setTimeout(() => { if (!demo.matches(':hover') && document.activeElement !== demo) show(false); }, 3600); } }, 1900);
+}
+
+/* ---------- hero compass: point at the reader ---------- */
+const compass = $('.compass');
+if (compass) {
+  addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' || scrollY > innerHeight) { window.__aim = null; return; }
+    const r = compass.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + 58;
+    const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+    window.__aim = d < 420 ? Math.atan2(e.clientX - cx, cy - e.clientY) * 180 / Math.PI : null;
+  }, { passive: true });
+  document.addEventListener('pointerleave', () => window.__aim = null);
+}
+
+/* ---------- idle on the hero: the arrow stirs ---------- */
+const hint = $('.hint');
+if (hint) {
+  let idleT;
+  const arm = () => { clearTimeout(idleT); hint.classList.remove('nudge'); idleT = setTimeout(() => { if (scrollY < 60) { hint.classList.add('nudge'); $('.hint-t', hint).textContent = 'scroll; it grows'; } }, 7000); };
+  ['scroll', 'pointermove', 'keydown'].forEach(e => addEventListener(e, arm, { passive: true }));
+  arm();
+}
+
+/* ---------- rewind the tree ---------- */
+const rewind = () => { scrollTo({ top: 0, behavior: reduce() ? 'auto' : 'smooth' }); };
+$$('.rewind').forEach(b => b.addEventListener('click', rewind));
+
+/* ---------- keyboard: j/k stops, x open, t theme, d dark, g top, ? help ---------- */
+const help = $('.keys-help');
+const marks = () => $$('.stop').length ? $$('.stop') : $$('.col.body > p').filter(p => p.nextElementSibling?.classList.contains('slot'));
+const go = step => {
+  const list = marks(), y = 90;
+  const i = list.findIndex(el => el.getBoundingClientRect().top > y + 4);
+  const cur = i === -1 ? list.length : i;
+  const target = step > 0 ? list[cur] : list[Math.max(0, cur - 2)];
+  if (target) scrollTo({ top: target.getBoundingClientRect().top + scrollY - y, behavior: reduce() ? 'auto' : 'smooth' });
+};
+addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || /input|textarea|select/i.test(e.target.tagName)) return;
+  if (e.key === '?') { help.hidden = !help.hidden; if (!help.hidden) $('.kh-card', help).focus?.(); return; }
+  if (e.key === 'Escape' && !help.hidden) { help.hidden = true; return; }
+  if (!help.hidden) return;
+  if (e.key === 'j') go(1);
+  else if (e.key === 'k') go(-1);
+  else if (e.key === 'g') rewind();
+  else if (e.key === 'd') $('.theme .mode')?.click();
+  else if (e.key === 't') {
+    const items = $$('.schemes li'), i = items.findIndex(li => li.dataset.id === root.dataset.scheme);
+    const next = items[(i + 1) % items.length];
+    root.dataset.scheme = next.dataset.id; save('scheme', next.dataset.id);
+    $('.theme .nm').textContent = next.dataset.label;
+    items.forEach(li => li.setAttribute('aria-selected', String(li === next)));
+    notice(`theme · <b>${next.dataset.label}</b>`, 1400);
+  } else if (e.key === 'x') {
+    const cards = $$('.card.t-project').filter(c => { const r = c.getBoundingClientRect(); return r.top < innerHeight * .7 && r.bottom > 80; });
+    cards[0]?.querySelector(':scope > .more')?.click();
+  }
+});
+help?.addEventListener('click', e => { if (e.target === help) help.hidden = true; });

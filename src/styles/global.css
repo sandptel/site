@@ -46,6 +46,31 @@ h1, h2, h3 { text-wrap: balance; }
   transition: border-color var(--t2) var(--ease), background-color var(--t3) var(--ease);
 }
 .top.scrolled { border-bottom-color: var(--rule); }
+/* reading progress: a hairline that fills under the bar */
+/* now reading: one fixed-width capsule in the middle of the bar, so nothing jumps as its text changes */
+.nowr { position: absolute; left: 50%; top: 50%; width: clamp(300px, 30vw, 420px); height: 46px; display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px;
+  padding: 0 12px 0 8px; border: 1px solid var(--rule); border-radius: 12px; background: color-mix(in srgb, var(--panel) 92%, transparent); overflow: hidden;
+  opacity: 0; transform: translate(-50%, calc(-50% - 8px)) scale(.97); pointer-events: none; transition: opacity var(--t2) var(--ease-in), transform var(--t2) var(--ease-in), border-color var(--t2) var(--ease); }
+.nowr.on { opacity: 1; transform: translate(-50%, -50%); transition: opacity var(--t3) var(--ease), transform var(--t3) var(--ease-emph); }
+.nr-dial svg { display: block; width: 26px; height: 26px; overflow: visible; }
+.nr-dial circle { fill: none; stroke: var(--rule); }
+.nr-dial .needle { transform-origin: 12px 12px; }
+.nr-dial .nb { fill: none; stroke: var(--accent); stroke-width: 1; } .nr-dial .nt { fill: var(--ember); }
+.nr-seal { display: grid; place-items: center; width: 30px; height: 30px; }
+.nr-seal .seal { --s: 30px; }
+.nr-seal.glyph svg { width: 18px; height: 18px; } .nr-seal.glyph path { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; } .nr-seal.glyph circle { fill: var(--accent); }
+.nr-text { display: grid; min-width: 0; line-height: 1.2; }
+.nr-name { display: flex; gap: 6px; align-items: baseline; min-width: 0; font: 400 15px/1.2 var(--f-term); color: var(--fg); }
+.nr-name b { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nr-name .arr { font: normal 11px var(--f-mono); color: var(--accent); }
+.nr-desc { font: 11px/1.3 var(--f-mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nr-text.swap, .nr-seal.swap { animation: nr-swap var(--t3) var(--ease-emph); }
+@keyframes nr-swap { from { opacity: 0; transform: translateY(8px); filter: blur(1.5px); } }
+.nr-track { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: color-mix(in srgb, var(--rule) 60%, transparent); }
+.nr-track i { position: absolute; inset: 0; background: var(--accent); transform: scaleX(var(--read, 0)); transform-origin: left; }
+.nowr .explored { font: 11px var(--f-mono); }
+@media (max-width: 1180px) { .nowr { width: clamp(260px, 34vw, 340px); } .nowr .explored { display: none !important; } }
+@media (max-width: 900px) { .nowr { left: auto; right: 64px; width: min(260px, calc(100vw - 200px)); transform: translate(0, calc(-50% - 8px)); } .nowr.on { transform: translate(0, -50%); } .top nav { opacity: 0; pointer-events: none; } .top:not(.reading) nav { opacity: 1; pointer-events: auto; } .nr-desc { display: none; } .nr-dial { display: none; } }
 .mark { font-family: var(--f-display); font-style: italic; font-size: 21px; color: var(--fg); text-decoration: none; letter-spacing: -.01em; }
 .mark span { color: var(--accent); }
 .top nav ul { display: flex; gap: clamp(12px, 2.4vw, 26px); list-style: none; margin: 0; padding: 0; }
@@ -143,7 +168,11 @@ h1.name .l2 { color: var(--accent); }
 .compass .needle { transform-origin: 66px 66px; }
 .compass .n-tip { fill: var(--ember); }
 .compass .n-body { fill: none; stroke: currentColor; }
-.compass figcaption { margin-top: 10px; font: 10.5px var(--f-mono); letter-spacing: .06em; color: var(--muted); }
+.compass { display: block; text-decoration: none; cursor: pointer; border-radius: 12px; }
+.compass .cap { display: block; margin-top: 10px; font: 10.5px var(--f-mono); letter-spacing: .06em; color: var(--muted); }
+.compass .cap b { font-weight: 400; color: var(--fg); transition: color var(--t2) var(--ease); }
+.compass:hover .ring:first-child { stroke: var(--accent); }
+.compass .ring { transition: stroke var(--t2) var(--ease); }
 .wander { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .wander path { fill: none; stroke: var(--accent); stroke-width: 1; stroke-linecap: round; opacity: .55; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 2.6s cubic-bezier(.55, 0, .25, 1) .9s forwards; }
 .wander circle { fill: var(--accent); }
@@ -730,7 +759,7 @@ footer.foot .contact span { user-select: all; }
   .hero { grid-template-columns: 1fr; }
   .compass { position: absolute; right: 0; top: 150px; width: 74px; }
   .compass svg { width: 74px; height: 74px; }
-  .compass figcaption { display: none; }
+  .compass .cap { display: none; }
   .grove .col { width: auto; margin: 0; padding: 0 16px 0 34px; }
   .jcol { text-align: left; margin-top: 40px; width: auto; padding: 0 16px 0 34px; }
   .jhead { text-align: left; padding-inline: 16px; }
@@ -775,3 +804,104 @@ html:not(.js) .slot { margin: 10px 0 30px; }
 }
 .sec-h { font: 300 clamp(30px, 3.4vw, 42px)/1.1 var(--f-display); margin: 0 0 24px; }
 .home-writing { padding-top: 0; }
+
+/* ============ motion pass: direction, speed, arrival ============ */
+
+/* landing: a card's contents cascade in, top to bottom (micro stagger, < 300ms total) */
+.js .grove .landed > .sway > .card > * { animation: cascade var(--t3) var(--ease) both; }
+.js .grove .landed > .sway > .card > :nth-child(2) { animation-delay: 40ms; }
+.js .grove .landed > .sway > .card > :nth-child(3) { animation-delay: 80ms; }
+.js .grove .landed > .sway > .card > :nth-child(4) { animation-delay: 120ms; }
+.js .grove .landed > .sway > .card > :nth-child(5) { animation-delay: 160ms; }
+.js .grove .landed > .sway > .card > :nth-child(n+6) { animation-delay: 200ms; }
+@keyframes cascade { from { opacity: 0; transform: translateY(8px); } }
+
+/* rewind: scrolling back up folds the cards below you back toward their branch, like pages closing */
+.js .grove .card { transform-origin: 50% 0; }
+html.js[data-dir="up"] .grove .bpos:not(.landed) > .sway > .card {
+  transform: perspective(900px) rotateX(78deg) scaleY(.7); opacity: 0;
+  transition: transform var(--t3) var(--ease-in), opacity var(--t3) var(--ease-in), visibility 0s linear var(--t3);
+}
+/* …and while rewinding, the branch lines warm to the mood colour for a moment */
+html[data-dir="up"][data-moving] .roots .br .main { stroke: color-mix(in srgb, var(--accent) 60%, var(--ember)); }
+
+/* arrival: journey nodes wait, dimmed, until the trunk reaches them */
+.js .journey .node:not(.reached) { border-color: color-mix(in srgb, var(--rule) 70%, var(--bg)); }
+.js .journey .node:not(.reached) .yr { color: var(--muted); }
+.js .journey .node:not(.reached) .what { color: var(--faint); }
+.js .journey .node .seal { filter: grayscale(1) contrast(.9); transition: filter var(--t3) var(--ease); }
+.js .journey .node.reached .seal { filter: none; }
+.js .journey .node .yr, .js .journey .node .what { transition: color var(--t3) var(--ease); }
+.js .journey .node { transition: border-color var(--t2) var(--ease), transform var(--t2) var(--ease), background-color var(--t3) var(--ease), box-shadow var(--t3) var(--ease); }
+.node::after { content: ""; position: absolute; inset: -1px; border: 1px solid var(--accent); border-radius: inherit; opacity: 0; pointer-events: none; }
+.node.reached::after { animation: arrive-ring .9s var(--ease) 1; }
+@keyframes arrive-ring { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.12, 1.35); } }
+
+/* speed: when you fly, the trunk warms and a bead carries the year along it */
+html[data-speed="fast"] .journey .roots .trunk { stroke: color-mix(in srgb, var(--accent) 55%, var(--faint)); }
+.bead { position: fixed; left: 50%; top: 50%; margin-top: -14px; z-index: 0; display: flex; align-items: center; gap: 10px; pointer-events: none; opacity: 0; transition: opacity var(--t2) var(--ease); will-change: transform; }
+.bead.on { opacity: 1; transition-duration: var(--t1); }
+.bead i { width: 13px; height: 13px; margin-left: -6.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent); }
+.bead .v { font: 400 22px/1 var(--f-term); color: var(--accent); font-variant-numeric: tabular-nums; padding: 3px 8px; background: var(--bg); border-radius: 6px; }
+.bead .v.roll { animation: roll var(--t2) var(--ease-emph); }
+@keyframes roll { from { transform: translateY(55%); opacity: 0; filter: blur(2px); } }
+.bead small { display: none; }
+
+/* ============ curiosity pass ============ */
+kbd { font: 11px/1 var(--f-mono); padding: 2px 6px; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; background: var(--panel); color: var(--fg); }
+
+/* explored meter: a ring that fills as the reader opens things */
+.explored { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
+.explored svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+.explored circle { fill: none; stroke-width: 2; }
+.explored .trk { stroke: var(--rule); }
+.explored .val { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--x, 0)); transition: stroke-dashoffset var(--t3) var(--ease-emph), stroke var(--t2) var(--ease); }
+.explored b { font-weight: 400; color: var(--fg); font-variant-numeric: tabular-nums; }
+.explored .sep { margin: 0 1px; opacity: .6; }
+.explored.tick svg { animation: tick-pop .5s var(--ease-emph); }
+@keyframes tick-pop { 40% { transform: rotate(-90deg) scale(1.3); } }
+.explored.done .val { stroke: var(--live); }
+.explored.done b { color: var(--live); }
+@media (max-width: 640px) { .explored .sep, .explored [data-explore-total] { display: none; } }
+
+/* the hero teaches the mechanic with its own word */
+.hero .demo-tw { color: var(--accent); }
+.hero-branch { position: absolute; z-index: 5; width: 300px; pointer-events: none; opacity: 0; transform: translateY(-6px); transition: opacity var(--t2) var(--ease-in), transform var(--t2) var(--ease-in); }
+.hero-branch.on { pointer-events: auto; opacity: 1; transform: none; transition: opacity var(--t2) var(--ease) .12s, transform var(--t3) var(--ease-emph) .12s; }
+.hero-branch .card { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 8%, transparent), var(--shadow); }
+.hero-branch .card p:not(.ctype) { font-size: 15px; }
+.hb-line path { stroke-linecap: round; }
+.hb-line { position: absolute; left: 0; top: -26px; overflow: visible; }
+.hb-line path { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset var(--t3) var(--ease); }
+.hero-branch.on .hb-line path { stroke-dashoffset: 0; }
+
+/* idle: the arrow stirs */
+.hint.nudge { color: var(--fg); }
+.hint.nudge svg { animation: stir 1.6s var(--ease) infinite; }
+@keyframes stir { 0%, 100% { transform: rotate(-14deg) translateY(0); } 40% { transform: rotate(-10deg) translateY(6px); } 60% { transform: rotate(-16deg) translateY(2px); } }
+
+/* coda + rewind */
+.coda { padding-block: 10px 70px; text-align: center; }
+.coda .coda-line { font: 300 clamp(22px, 2.4vw, 30px)/1.35 var(--f-display); margin: 0 auto 22px; max-width: 32em; text-wrap: balance; }
+.coda .coda-line b { font-weight: 400; color: var(--accent); font-variant-numeric: tabular-nums; }
+.coda .coda-more { color: var(--muted); font-style: italic; }
+.rewind { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 20px; cursor: pointer; font: 13px/1 var(--f-mono); color: var(--fg);
+  background: var(--panel); border: 1px solid var(--rule); border-radius: 999px; transition: border-color var(--t1) var(--ease), transform var(--t2) var(--ease), box-shadow var(--t3) var(--ease); }
+.rewind span { color: var(--accent); transition: transform var(--t2) var(--ease); }
+.rewind:hover { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 9%, transparent); }
+.rewind:hover span { transform: translateY(-3px); }
+
+/* keyboard help */
+.keys-help { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, var(--bg) 60%, transparent); backdrop-filter: blur(4px); animation: fade var(--t2) var(--ease); }
+.keys-help[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; } }
+.kh-card { width: min(420px, 100%); padding: 20px 22px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; box-shadow: var(--shadow); animation: drop var(--t3) var(--ease-emph); }
+.kh-card dl { margin: 0; display: grid; gap: 10px; }
+.kh-card dl div { display: grid; grid-template-columns: 76px 1fr; gap: 12px; align-items: baseline; }
+.kh-card dt { display: flex; gap: 4px; } .kh-card dd { margin: 0; font-size: 15px; color: var(--muted); }
+
+/* one-line notice */
+.notice { position: fixed; left: 50%; top: 74px; z-index: 50; padding: 10px 16px; font-size: 15px; background: var(--panel); border: 1px solid var(--rule); border-radius: 999px; box-shadow: var(--shadow);
+  transform: translate(-50%, -12px); opacity: 0; transition: transform var(--t3) var(--ease-emph), opacity var(--t2) var(--ease); }
+.notice.on { transform: translate(-50%, 0); opacity: 1; }
+.notice b { font-weight: 500; }

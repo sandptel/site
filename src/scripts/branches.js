@@ -47,10 +47,28 @@
     return b;
   }
 
+  // ---------- explored: what this reader has deliberately opened (per page, kept in their browser) ----------
+  const exKey = 'explored:' + location.pathname;
+  let seen; try { seen = new Set(JSON.parse(localStorage.getItem(exKey) || '[]')); } catch { seen = new Set(); }
+  let exTotal = 0;
+  const exUpdate = fresh => {
+    const n = seen.size, done = exTotal && n >= exTotal;
+    document.querySelectorAll('[data-explored]').forEach(e => e.textContent = n);
+    document.querySelectorAll('[data-explore-total]').forEach(e => e.textContent = exTotal);
+    const m = $('.explored');
+    if (m && exTotal) {
+      m.hidden = false; m.style.setProperty('--x', n / exTotal); m.classList.toggle('done', !!done);
+      if (fresh) { m.classList.remove('tick'); void m.offsetWidth; m.classList.add('tick'); }
+      if (fresh && done) document.dispatchEvent(new CustomEvent('explored:all'));
+    }
+  };
+  const mark = id => { if (seen.has(id)) return; seen.add(id); try { localStorage.setItem(exKey, JSON.stringify([...seen])); } catch {} exUpdate(true); };
+
   // ---------- groves ----------
   const groves = $$('[data-grove]').map(gel => {
     const G = { el: gel, svg: $('svg.roots', gel), journey: gel.hasAttribute('data-journey'), top: [], subs: [], all: [], trunks: [], moods: [] };
     G.col = $(G.journey ? '.jcol' : '.col.body', gel);
+    G.paras = G.journey ? [] : $$(':scope > p', G.col);
     $$('[data-b]', gel).forEach(a => {
       const ids = a.dataset.b.split(' ');
       a.setAttribute('aria-controls', ids.map(i => 'b-' + i).join(' '));
@@ -59,6 +77,7 @@
       ids.forEach((id, i) => { const pos = document.getElementById('b-' + id); if (pos) { const b = makeBranch(G, a, pos, i, null); G.top.push(b); group.push(b); } });
       a.addEventListener('click', () => {
         const pin = !group[0].pinned || group[0].p < .9;
+        if (pin && group[0].kind === 'word') mark('b:' + ids.join('+'));
         group.forEach(b => { b.pinned = pin; if (pin) { b.card.classList.remove('flash'); void b.card.offsetWidth; b.card.classList.add('flash'); } });
       });
       a.addEventListener('focus', () => group.forEach(b => b.pinned = true));
@@ -74,7 +93,7 @@
       btn.setAttribute('aria-controls', pos.id); btn.setAttribute('aria-expanded', 'false');
       const set = open => { s.open = open; btn.setAttribute('aria-expanded', String(open)); pos.classList.toggle('open', open); parent.pinned = parent.pinned || open; G.dirty = true; };
       s.set = set;
-      btn.addEventListener('click', e => { e.stopPropagation(); set(!s.open); });
+      btn.addEventListener('click', e => { e.stopPropagation(); if (!s.open) mark('sub:' + btn.dataset.sub); set(!s.open); });
       btn.addEventListener('mouseenter', () => s.peek = true); btn.addEventListener('mouseleave', () => s.peek = false);
       btn.addEventListener('focus', () => s.peek = true); btn.addEventListener('blur', () => s.peek = false);
       btn.addEventListener('keydown', e => { if (e.key === 'Escape' && s.open) set(false); });
@@ -90,10 +109,12 @@
       const expand = on => {
         if (b.expanded === on) return;
         b.expanded = on; b.card.classList.toggle('open', on); b.pos.classList.toggle('expanded', on);
+        if (on) { mark('card:' + b.pos.id); b.subs.forEach(s => mark('sub:' + s.anchor.dataset.sub)); }
         btn.setAttribute('aria-expanded', String(on)); btn.firstChild.textContent = on ? 'less' : 'details';
         b.subs.forEach(s => s.set(on));
         G.animUntil = performance.now() + 700; G.dirty = true;
       };
+      b.fold = () => expand(false);
       btn.addEventListener('click', e => { e.stopPropagation(); b.lock = !b.expanded; expand(!b.expanded); });
       b.card.addEventListener('pointermove', e => {
         if (e.pointerType !== 'mouse' || b.expanded || G.mobile || performance.now() - lastScroll < 350) return;
@@ -112,6 +133,8 @@
     return G;
   });
 
+  exTotal = groves.reduce((n, G) => n + G.top.filter(b => b.kind === 'word' || b.card.classList.contains('t-project')).length + G.subs.length, 0);
+  exUpdate(false);
   if (ALL) groves.forEach(G => G.subs.forEach(s => s.set(true)));
 
   // ---------- layout (reads, then writes; only on resize/toggle/fonts) ----------
@@ -324,15 +347,86 @@
   }
 
   // ---------- frame loop ----------
-  const washE = $('.wash.ember'), washL = $('.wash.lichen'), needles = $$('.compass .needle, .heading .needle');
-  const heading = $('.heading'), headingName = heading && $('b', heading), stops = $$('.stop[data-name]');
-  let headingNow = '';
+  const washE = $('.wash.ember'), washL = $('.wash.lichen'), navNeedle = $('.nowr .needle'), heroNeedle = $('.compass .needle'), heroCap = $('.compass .cap b');
+  const needles = [navNeedle, heroNeedle].filter(Boolean);
+  let heroAngle = 38, capNow = '';
+  const stops = $$('.stop[data-name]');
+  // now reading: the centred capsule in the top bar
+  const nowr = $('.nowr'), nrName = nowr && $('.nr-name b', nowr), nrDesc = nowr && $('.nr-desc', nowr), nrSeal = nowr && $('.nr-seal', nowr), nrText = nowr && $('.nr-text', nowr);
+  const SPRIG_SVG = '<svg viewBox="0 0 20 20"><path d="M10 18 C10 12, 8 9, 4 6 M10 13 C 11 9, 13 7, 16 5"/><circle cx="4" cy="6" r="1.6"/><circle cx="16" cy="5" r="1.6"/></svg>';
+  const postTitle = ($('.post-head h1') || {}).textContent || '';
+  const nrItems = $$('[data-nr]').map(el => ({ el, name: el.dataset.name, desc: el.dataset.desc || '', seal: ($('.node .seal', el) || {}).outerHTML || '' }));
+  groves.filter(G => !G.journey && G.paras.length).forEach(G => G.paras.forEach((p, i) => nrItems.push({
+    el: p, name: postTitle, seal: '',
+    desc: `¶ ${i + 1} of ${G.paras.length}` + ((w => w.length ? ' · ' + w.join(', ') : '')($$('.tw', p).map(b => b.textContent)))
+  })));
+  let nrNow = null, nrSwapAt = 0;
+  const nrSet = it => {
+    if (it === nrNow) return; nrNow = it;
+    nowr.classList.toggle('on', !!it);
+    if (!it) return;
+    nrName.textContent = it.name; nrDesc.textContent = it.desc;
+    nrSeal.innerHTML = it.seal || SPRIG_SVG; nrSeal.classList.toggle('glyph', !it.seal);
+    // at reading pace the new stop slides in; when flying it just swaps, so the text never blanks out
+    const t = performance.now(), calm = !fast && t - nrSwapAt > 300; nrSwapAt = t;
+    [nrText, nrSeal].forEach(e => { e.classList.remove('swap'); if (calm) { void e.offsetWidth; e.classList.add('swap'); } });
+  };
   let last = performance.now(), lastScroll = 0;
   addEventListener('scroll', () => lastScroll = performance.now(), { passive: true });
+
+  // ---------- motion state: which way, how fast ----------
+  // The bio says "can't perceive directions"; the page can. Scroll direction and speed drive
+  // the compass, a rewind when you go back up, card inertia, and a bead that carries the year along the trunk.
+  const root = document.documentElement;
+  let lastSy = scrollY, vel = 0, dirNow = '', fast = false, calmAt = 0, movingAt = 0, angle = 38, readNow = -1, handAt = 0;
+  // only the reader's own flings count as "fast"; anchor jumps and scrollTo don't
+  const hand = () => handAt = performance.now();
+  ['wheel', 'touchmove'].forEach(e => addEventListener(e, hand, { passive: true }));
+  addEventListener('keydown', e => { if (/^(PageDown|PageUp|ArrowDown|ArrowUp|Space| |Home|End)$/.test(e.key)) hand(); });
+  const headingArrow = nowr && $('.arr', nowr);
+  const setDir = d => { if (d !== dirNow) { dirNow = d; root.dataset.dir = d; if (headingArrow) headingArrow.textContent = d === 'up' ? '↑' : '↓'; } };
+  const stopInfo = stops.map(s => {
+    const sizes = $$('.bpos[data-size]', s).map(e => e.dataset.size);
+    return { el: s, name: s.dataset.name, when: ($('.node .yr', s) || {}).textContent || '', big: sizes.includes('xl') ? 2 : sizes.includes('l') ? 1 : 0 };
+  });
+  let stopIdx = -1, beadNow = '', streak = false;
+  // the bead: while you fly through the journey, the year rides the trunk itself, mid-screen
+  const jG = () => groves.find(G => G.journey);
+  const bead = stops.length ? document.createElement('span') : null;
+  if (bead) {
+    bead.className = 'bead'; bead.setAttribute('aria-hidden', 'true');
+    bead.innerHTML = '<i></i><b class="v"></b><small></small>';
+    document.body.appendChild(bead); // fixed to the viewport: never has to chase the scroll
+  }
+  const beadSet = i => {
+    if (!bead || i < 0) return;
+    const v = stopInfo[i].when;
+    if (v !== beadNow) { const el = $('.v', bead); el.textContent = v; el.classList.remove('roll'); void el.offsetWidth; el.classList.add('roll'); beadNow = v; }
+    $('small', bead).textContent = stopInfo[i].name;
+  };
+  // the tree catches you: a fast run that ends near a key stop eases it into place, once
+  function magnet() {
+    if (reduce) return;
+    let best = null, bd = Infinity;
+    for (const s of stopInfo) {
+      if (!s.big) continue;
+      const r = $('.node', s.el).getBoundingClientRect(), d = r.top + r.height / 2 - innerHeight * .42;
+      if (Math.abs(d) < innerHeight * .3 && Math.abs(d) < Math.abs(bd)) { bd = d; best = s; }
+    }
+    if (best && Math.abs(bd) > 24) scrollTo({ top: scrollY + bd, behavior: 'smooth' });
+  }
   function frame(now) {
     const dt = Math.min(1 / 30, (now - last) / 1000); last = now;
     const sy = scrollY, vh = innerHeight;
     let ember = 0, lichen = 0;
+    vel += ((sy - lastSy) / Math.max(dt, 1 / 240) - vel) * Math.min(1, dt * 12); lastSy = sy;
+    if (Math.abs(vel) > 40) { movingAt = now; setDir(vel > 0 ? 'down' : 'up'); }
+    if (!fast && Math.abs(vel) > 2200 && !reduce && now - handAt < 400) { fast = true; root.dataset.speed = 'fast'; streak = true; }
+    if (fast) { if (Math.abs(vel) > 900) calmAt = now; else if (now - calmAt > 260) { fast = false; delete root.dataset.speed; } }
+    if (streak && !fast && Math.abs(vel) < 60 && now - handAt > 220) { streak = false; if (stopIdx >= 0) magnet(); }
+    const lag = reduce ? 0 : clamp(-vel * .028, -40, 40); // cards have a little weight
+    const read = Math.round(clamp(sy / Math.max(1, root.scrollHeight - vh), 0, 1) * 500) / 500;
+    if (read !== readNow) { readNow = read; root.style.setProperty('--read', read); }
     for (const G of groves) {
       if (G.animUntil > now) G.dirty = true; // re-measure while a card unfolds so neighbours glide
       if (G.dirty) layout(G);
@@ -348,9 +442,12 @@
       for (const b of G.top) {
         let target = (ALL || reduce) ? 1 : clamp((sy + vh * (G.mobile ? .94 : .8) - b.trig) / (vh * .28) - b.stagger, 0, 1);
         if (b.pinned) target = 1;
-        b.p = (ALL || reduce) ? target : b.p + (target - b.p) * Math.min(1, dt * 9);
+        const rate = target < b.p && dirNow === 'up' ? 4.2 : 9; // rewinding folds a touch slower, so you see it
+        b.p = (ALL || reduce) ? target : b.p + (target - b.p) * Math.min(1, dt * rate);
         if (Math.abs(b.p - target) < .002) b.p = target;
         setLanded(b, b.landed ? b.p > .82 : b.p > .93);
+        if (b.kind === 'node' && (b.p > .03) !== !!b.reached) { b.reached = b.p > .03; b.anchor.classList.toggle('reached', b.reached); }
+        if (b.expanded && !b.lock) { const r = b.card.getBoundingClientRect(); if (r.bottom < -40 || r.top > vh + 40) b.fold(); }
         b.main.style.strokeDashoffset = b.glow.style.strokeDashoffset = 1 - b.p;
         if (G.mobile) { if (!b.noPath) drawMobile(b); else { b.main.setAttribute('d', ''); b.glow.setAttribute('d', ''); } }
         else {
@@ -358,7 +455,7 @@
           if (reduce) { b.x = b.tx; b.y = b.ty; }
           else {
             const k = 170, c = 27;
-            b.vx += (k * (b.tx - b.x) - c * b.vx) * dt; b.vy += (k * (b.ty - b.y) - c * b.vy) * dt;
+            b.vx += (k * (b.tx - b.x) - c * b.vx) * dt; b.vy += (k * (b.ty + lag - b.y) - c * b.vy) * dt;
             b.x += b.vx * dt; b.y += b.vy * dt;
           }
           let dx = 0, dy = 0, rot = 0;
@@ -374,6 +471,12 @@
           const cx = b.side === 'R' ? b.X : b.X + b.w, cy = b.Y + b.attach;
           drawDesktop(b, cx, cy, cx - b.dir * 30, cy);
         }
+      }
+      // reading lamp: paragraphs far from the eye line soften
+      if (G.paras.length && !reduce) for (const p of G.paras) {
+        const r = p.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - vh * .45);
+        const o = Math.round((1 - .42 * smooth(clamp((d - vh * .3) / (vh * .35), 0, 1))) * 50) / 50;
+        if (o !== p._o) { p._o = o; p.style.opacity = o; }
       }
       for (const s of G.subs) {
         const P = s.parent;
@@ -394,14 +497,36 @@
     // atmosphere
     if (washE) { washE.style.opacity = f(ember * 100) / 100; washL.style.opacity = f(lichen * 100) / 100; }
     // compass that never settles
-    const ang = reduce ? 37 : (t => 38 + Math.sin(t * .7) * 40 + Math.sin(t * 1.9 + 1) * 18 + Math.sin(t * 4.3) * 4)(now / 1000);
-    needles.forEach(n => n.style.transform = `rotate(${f(ang)}deg)`);
-    // the nav's compass names the stop you're passing
-    if (heading) {
+    const t = now / 1000, moving = now - movingAt < 650;
+    const want = reduce ? 37 : moving ? (dirNow === 'up' ? 0 : 180) + Math.sin(t * 3.1) * 5 * Math.min(1, Math.abs(vel) / 800)
+      : 38 + Math.sin(t * .7) * 40 + Math.sin(t * 1.9 + 1) * 18 + Math.sin(t * 4.3) * 4;
+    angle += (((want - angle) % 360 + 540) % 360 - 180) * Math.min(1, dt * (moving ? 7 : 2.5));
+    if (navNeedle) navNeedle.style.transform = `rotate(${f(angle)}deg)`;
+    // the hero compass also notices you: hover near it and it points at your cursor
+    if (heroNeedle) {
+      const aim = window.__aim;
+      const hw = aim == null ? angle : aim;
+      heroAngle += (((hw - heroAngle) % 360 + 540) % 360 - 180) * Math.min(1, dt * (aim == null ? 8 : 10));
+      heroNeedle.style.transform = `rotate(${f(heroAngle)}deg)`;
+      const cap = aim != null ? 'you' : moving ? (dirNow === 'up' ? 'north, probably' : 'south, probably') : 'unsure';
+      if (cap !== capNow && heroCap) { capNow = cap; heroCap.textContent = cap; }
+    }
+    root.toggleAttribute('data-moving', moving);
+    // where the reader is: stop index for the bead, and the capsule's content
+    {
       let cur = '';
-      for (const s of stops) { const r = s.getBoundingClientRect(); if (r.top < vh * .55) cur = s.dataset.name; }
-      heading.classList.toggle('on', !!cur);
-      if (cur !== headingNow) { headingNow = cur; headingName.textContent = cur; }
+      let idx = -1, it = null;
+      if (nowr) { for (const x of nrItems) if (x.el.getBoundingClientRect().top < vh * .45) it = x; nrSet(sy > 240 ? it : null); }
+      stops.forEach((s, i) => { if (s.getBoundingClientRect().top < vh * .55) { cur = s.dataset.name; idx = i; } });
+      if (idx !== stopIdx) { stopIdx = idx; beadSet(idx); }
+      if (bead) {
+        // only along the trunk
+        const G = jG(), mid = sy + vh * .5;
+        // it rides under the page layer, so nodes simply pass over it: no on/off flicker at each stop
+        const on = fast && idx >= 0 && G && mid > G.docTop + G.tTop && mid < G.docTop + G.tTop + G.tLen;
+        if (on !== bead._on) { bead._on = on; bead.classList.toggle('on', !!on); }
+        if (on) { const x = Math.round(G.el.getBoundingClientRect().left + (G.mobile ? (G.colL || 34) - 2 : (G.colL + G.colR) / 2)); if (x !== bead._x) { bead._x = x; bead.style.left = x + 'px'; } }
+      }
     }
     requestAnimationFrame(frame);
   }
@@ -424,4 +549,5 @@
   addEventListener('load', go);
   setTimeout(layoutHero, 1700);
   if (groves.length || needles.length) requestAnimationFrame(frame);
+  window.__branches = { groves, mark };
 })();
