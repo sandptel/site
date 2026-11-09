@@ -1,18 +1,29 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { weave } from '../../lib/ui';
 
 export async function getStaticPaths() {
   const posts = await getCollection('writing', ({ data }) => !data.draft);
   return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
 }
 const { post } = Astro.props;
-const { Content } = await render(post);
+// branches are woven into the rendered markdown at build time, so they exist without JS
+const body = weave(post.rendered?.html ?? '', post.data.branches);
 ---
-<Base title={post.data.title}>
-  <article>
-    <h1>{post.data.title}</h1>
-    <time datetime={post.data.date.toISOString()}>{post.data.date.toDateString()}</time>
-    <Content />
+<Base title={post.data.title} description={post.data.summary} wash>
+  <article class="grove" data-grove>
+    <svg class="roots" aria-hidden="true"></svg>
+    <header class="col post-head">
+      <p class="kicker">writing</p>
+      <h1>{post.data.title}</h1>
+      <p class="dateline mono">{post.data.dateline ?? post.data.date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
+      <p class="howto">Words like <span class="demo">this</span> grow branches as you scroll. Tap one to hold it open; words inside a branch open branches of their own.</p>
+    </header>
+    <div class="col body" set:html={body} />
+    <footer class="col post-foot mono">
+      <a href="/writing">← all writing</a>
+      <a href="/#journey">where this sits in the journey →</a>
+    </footer>
   </article>
 </Base>

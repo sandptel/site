@@ -1,18 +1,25 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { JOURNEY } from '../../data/journey';
+import { renderBranch } from '../../lib/ui';
 
-const projects = (await getCollection('projects', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+// every project card from the journey, newest first, without the tree
+// (nested branches only live in the journey, so their words become plain text here)
+const flat = (type: string) => JOURNEY.slice().reverse().flatMap(s => Object.entries(s.cards))
+  .filter(([, b]) => b.type === type)
+  .map(([id, b]) => renderBranch(id, { ...b, subs: undefined, want: undefined })
+    .replace('class="bpos', 'class="bpos landed')
+    .replace('class="card t-project', 'class="card t-project open')
+    .replace(/<button class="tw sub"[^>]*>(.*?)<\/button>/g, '$1'));
+const cards = flat('project'), leaves = flat('leaf');
 ---
 <Base title="Projects">
-  <h1>Projects</h1>
-  <ul class="list">
-    {projects.map((p) => (
-      <li>
-        <a href={`/projects/${p.id}`}>{p.data.title}</a>
-        <div class="muted">{p.data.summary}</div>
-      </li>
-    ))}
-  </ul>
+  <section class="list-page wrap">
+    <p class="kicker">projects</p>
+    <h1>Work, without the tree</h1>
+    <p>The same cards as the journey, flat and newest first. The journey has the nested explanations.</p>
+    <ul class="projects">{cards.map(c => <li set:html={c} />)}</ul>
+    <h2 class="sec-h small-branches">Small branches</h2>
+    <ul class="projects">{leaves.map(c => <li set:html={c} />)}</ul>
+  </section>
 </Base>

@@ -1,0 +1,226 @@
+[
+ {
+  "id": "marginalia",
+  "label": "Marginalia",
+  "light": {
+   "name": "marginalia-light",
+   "swatch": [
+    "#f4f3ee",
+    "#fbfaf6",
+    "#1e1d1a",
+    "#2f4b8f",
+    "#6a4c93",
+    "#557420",
+    "#9a5a2b"
+   ]
+  },
+  "dark": {
+   "name": "marginalia-dark",
+   "swatch": [
+    "#15161a",
+    "#1b1c21",
+    "#e4e1d8",
+    "#9fb3e6",
+    "#c3a6e0",
+    "#a9c77a",
+    "#d99a5e"
+   ]
+  }
+ },
+ {
+  "id": "gruvbox",
+  "label": "Gruvbox",
+  "light": {
+   "name": "gruvbox-light-medium",
+   "swatch": [
+    "#fbf1c7",
+    "#ebdbb2",
+    "#48423e",
+    "#076375",
+    "#8b3d6e",
+    "#615d0b",
+    "#a23603"
+   ]
+  },
+  "dark": {
+   "name": "gruvbox-dark-medium",
+   "swatch": [
+    "#282828",
+    "#3c3836",
+    "#d8c8a8",
+    "#99b5aa",
+    "#dc9eaf",
+    "#b8bb26",
+    "#fe933c"
+   ]
+  }
+ },
+ {
+  "id": "ros-pine",
+  "label": "Ros\u00e9 Pine",
+  "light": {
+   "name": "rose-pine-dawn",
+   "swatch": [
+    "#faf4ed",
+    "#fffaf3",
+    "#534e73",
+    "#77658b",
+    "#926220",
+    "#286983",
+    "#926220"
+   ]
+  },
+  "dark": {
+   "name": "rose-pine",
+   "swatch": [
+    "#191724",
+    "#1f1d2e",
+    "#e0def4",
+    "#c4a7e7",
+    "#f6c177",
+    "#6a9aae",
+    "#f6c177"
+   ]
+  }
+ },
+ {
+  "id": "catppuccin",
+  "label": "Catppuccin",
+  "light": {
+   "name": "catppuccin-latte",
+   "swatch": [
+    "#eff1f5",
+    "#e6e9ef",
+    "#484b64",
+    "#1a59d6",
+    "#7e35dd",
+    "#2d701e",
+    "#a54107"
+   ]
+  },
+  "dark": {
+   "name": "catppuccin-mocha",
+   "swatch": [
+    "#1e1e2e",
+    "#181825",
+    "#cdd6f4",
+    "#89b4fa",
+    "#cba6f7",
+    "#a6e3a1",
+    "#fab387"
+   ]
+  }
+ },
+ {
+  "id": "everforest",
+  "label": "Everforest",
+  "light": {
+   "name": "everforest-light-medium",
+   "swatch": [
+    "#fdf6e3",
+    "#f4f0d9",
+    "#475258",
+    "#2a6b8f",
+    "#9c4a82",
+    "#5f6d01",
+    "#9f5119"
+   ]
+  },
+  "dark": {
+   "name": "everforest-dark-medium",
+   "swatch": [
+    "#2d353b",
+    "#343f44",
+    "#ced3d0",
+    "#85beb7",
+    "#dba6bf",
+    "#a7c080",
+    "#e9a586"
+   ]
+  }
+ },
+ {
+  "id": "solarized",
+  "label": "Solarized",
+  "light": {
+   "name": "solarized-light",
+   "swatch": [
+    "#fdf6e3",
+    "#eee8d5",
+    "#3e4d52",
+    "#1c6598",
+    "#565a9d",
+    "#5a6700",
+    "#a73e12"
+   ]
+  },
+  "dark": {
+   "name": "solarized-dark",
+   "swatch": [
+    "#002b36",
+    "#073642",
+    "#b9c2c2",
+    "#62abde",
+    "#9c9fd7",
+    "#9aab2d",
+    "#de8e6d"
+   ]
+  }
+ },
+ {
+  "id": "tokyo-night",
+  "label": "Tokyo Night",
+  "light": {
+   "name": "tokyo-night-light",
+   "swatch": [
+    "#d5d6db",
+    "#cbccd1",
+    "#313855",
+    "#315083",
+    "#584875",
+    "#43572c",
+    "#78401f"
+   ]
+  },
+  "dark": {
+   "name": "tokyo-night-dark",
+   "swatch": [
+    "#1a1b26",
+    "#16161e",
+    "#a9b1d6",
+    "#2ac3de",
+    "#bb9af7",
+    "#9ece6a",
+    "#a9b1d6"
+   ]
+  }
+ },
+ {
+  "id": "nord",
+  "label": "Nord",
+  "light": {
+   "name": "nord-light",
+   "swatch": [
+    "#e5e9f0",
+    "#c2d0e7",
+    "#2e3440",
+    "#2c527e",
+    "#8c3254",
+    "#335931",
+    "#8a361e"
+   ]
+  },
+  "dark": {
+   "name": "nord",
+   "swatch": [
+    "#2e3440",
+    "#3b4252",
+    "#e5e9f0",
+    "#aac0d5",
+    "#ceb6ca",
+    "#acc498",
+    "#e0b1a2"
+   ]
+  }
+ }
+]

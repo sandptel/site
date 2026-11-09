@@ -1,17 +1,21 @@
 ---
 import '../styles/global.css';
+import themes from '../data/themes.json';
 
 interface Props {
   title?: string;
   description?: string;
+  wash?: boolean; // mood washes, for posts
 }
-const { title, description = 'Personal site' } = Astro.props;
-const fullTitle = title ? `${title} · Sandeep` : 'Sandeep';
+const { title, description = 'Sandeep Patel: Rust, Nix and Wayland. Systems work, written so it branches as you read.', wash = false } = Astro.props;
+const fullTitle = title ? `${title} · Sandeep Patel` : 'Sandeep Patel';
 const nav = [
-  ['/', 'home'],
+  ['/#journey', 'journey'],
   ['/projects', 'projects'],
   ['/writing', 'writing'],
 ];
+const here = Astro.url.pathname.replace(/\/$/, '') || '/';
+const current = (href: string) => (href !== '/#journey' && here.startsWith(href) ? 'page' : undefined);
 ---
 <!doctype html>
 <html lang="en">
@@ -21,16 +25,70 @@ const nav = [
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{fullTitle}</title>
+    <!-- before first paint: saved theme, else the OS mode -->
+    <script is:inline>
+      (() => {
+        const r = document.documentElement; r.classList.add('js');
+        let m, s; try { m = localStorage.getItem('mode'); s = localStorage.getItem('scheme'); } catch {}
+        r.dataset.mode = m || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        r.dataset.scheme = s || 'marginalia';
+        if (/[?&]all|#all/.test(location.search + location.hash)) r.classList.add('all');
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Young+Serif&display=swap" />
   </head>
   <body>
-    <header>
-      <nav>
-        {nav.map(([href, label]) => (
-          <a href={href} aria-current={Astro.url.pathname === href ? 'page' : undefined}>{label}</a>
-        ))}
-      </nav>
+    {wash && <><div class="wash ember" aria-hidden="true"></div><div class="wash lichen" aria-hidden="true"></div></>}
+    <header class="top">
+      <a class="mark" href="/">sand<span>ptel</span></a>
+      <div class="right">
+        <p class="heading mono" aria-hidden="true">
+          <svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5" fill="none" stroke="var(--rule)" /><g class="needle"><path d="M11 3 L13 11 L11 19 L9 11 Z" fill="none" stroke="var(--accent)" stroke-width="1" /><path d="M11 3 L13 11 L9 11 Z" fill="var(--ember)" /></g></svg>
+          <span>heading:</span> <b></b>
+        </p>
+        <nav aria-label="Primary">
+          <ul>{nav.map(([href, label]) => <li><a href={href} aria-current={current(href)}>{label}</a></li>)}</ul>
+        </nav>
+        <div class="theme">
+          <button class="mode" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+            <svg class="sunmoon" viewBox="0 0 24 24" aria-hidden="true">
+              <mask id="sm-bite"><rect width="24" height="24" fill="#fff" /><circle class="bite" cx="30" cy="-6" r="7" fill="#000" /></mask>
+              <circle class="disc" cx="12" cy="12" r="4.5" mask="url(#sm-bite)" />
+              <g class="rays"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></g>
+            </svg>
+          </button>
+          <button class="scheme" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose a base16 theme">
+            <span class="dots"></span><span class="nm">Marginalia</span>
+          </button>
+          <ul class="schemes" role="listbox" aria-label="base16 themes" hidden>
+            {themes.map(t => (
+              <li role="option" tabindex="-1" data-id={t.id} data-label={t.label} data-light={JSON.stringify(t.light.swatch)} data-dark={JSON.stringify(t.dark.swatch)}>
+                <span>{t.label}</span>
+                <span class="strip" aria-hidden="true">
+                  {t.light.swatch.slice(0, 1).concat(t.light.swatch.slice(3)).map(c => <i style={`background:${c}`}></i>)}
+                  {t.dark.swatch.slice(0, 1).concat(t.dark.swatch.slice(3)).map(c => <i style={`background:${c}`}></i>)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </header>
     <main><slot /></main>
-    <footer>© {new Date().getFullYear()} Sandeep</footer>
+    <footer class="foot">
+      <span class="sig">Sandeep Patel</span>
+      <span class="contact mono">
+        <span>sandppatel15@gmail.com</span>
+        <a href="https://github.com/sandptel">github ↗</a>
+        <a href="https://linkedin.com/in/sandptel">linkedin ↗</a>
+      </span>
+      <span class="mono">the tree ends here, for now · I use NixOS, btw</span>
+    </footer>
+    <script>
+      import '../scripts/site.js';
+      import '../scripts/branches.js';
+    </script>
   </body>
 </html>
