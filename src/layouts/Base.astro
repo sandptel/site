@@ -1,0 +1,36 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description = 'Personal site' } = Astro.props;
+const fullTitle = title ? `${title} · Sandeep` : 'Sandeep';
+const nav = [
+  ['/', 'home'],
+  ['/projects', 'projects'],
+  ['/writing', 'writing'],
+];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        {nav.map(([href, label]) => (
+          <a href={href} aria-current={Astro.url.pathname === href ? 'page' : undefined}>{label}</a>
+        ))}
+      </nav>
+    </header>
+    <main><slot /></main>
+    <footer>© {new Date().getFullYear()} Sandeep</footer>
+  </body>
+</html>
