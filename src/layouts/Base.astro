@@ -30,7 +30,8 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
       (() => {
         const r = document.documentElement; r.classList.add('js');
         let m, s; try { m = localStorage.getItem('mode'); s = localStorage.getItem('scheme'); } catch {}
-        r.dataset.mode = m || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        r.dataset.pref = m || 'auto';
+        r.dataset.mode = m && m !== 'auto' ? m : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         r.dataset.scheme = s || 'marginalia';
         if (/[?&]all|#all/.test(location.search + location.hash)) r.classList.add('all');
       })();
@@ -59,27 +60,46 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
           <ul>{nav.map(([href, label]) => <li><a href={href} aria-current={current(href)}>{label}</a></li>)}</ul>
         </nav>
         <div class="theme">
-          <button class="mode" type="button" aria-label="Switch to dark mode" aria-pressed="false">
-            <svg class="sunmoon" viewBox="0 0 24 24" aria-hidden="true">
-              <mask id="sm-bite"><rect width="24" height="24" fill="#fff" /><circle class="bite" cx="30" cy="-6" r="7" fill="#000" /></mask>
-              <circle class="disc" cx="12" cy="12" r="4.5" mask="url(#sm-bite)" />
-              <g class="rays"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></g>
-            </svg>
+          <!-- base16 theme: a colour wheel of the theme's accents, and its name -->
+          <button class="scheme" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Choose a base16 theme">
+            <span class="wheel" aria-hidden="true"></span><span class="nm">Marginalia</span>
+            <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" /></svg>
           </button>
-          <button class="scheme" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose a base16 theme">
-            <span class="dots"></span><span class="nm">Marginalia</span>
+          <!-- light / dark: a small switch whose track is a sky -->
+          <button class="mode" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+            <span class="track" aria-hidden="true">
+              <i class="star s1"></i><i class="star s2"></i><i class="star s3"></i>
+              <span class="knob">
+                <svg class="sunmoon" viewBox="0 0 24 24">
+                  <mask id="sm-bite"><rect width="24" height="24" fill="#fff" /><circle class="bite" cx="30" cy="-6" r="7" fill="#000" /></mask>
+                  <circle class="disc" cx="12" cy="12" r="4.5" mask="url(#sm-bite)" />
+                  <g class="rays"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></g>
+                </svg>
+              </span>
+            </span>
           </button>
-          <ul class="schemes" role="listbox" aria-label="base16 themes" hidden>
-            {themes.map(t => (
-              <li role="option" tabindex="-1" data-id={t.id} data-label={t.label} data-light={JSON.stringify(t.light.swatch)} data-dark={JSON.stringify(t.dark.swatch)}>
-                <span>{t.label}</span>
-                <span class="strip" aria-hidden="true">
-                  {t.light.swatch.slice(0, 1).concat(t.light.swatch.slice(3)).map(c => <i style={`background:${c}`}></i>)}
-                  {t.dark.swatch.slice(0, 1).concat(t.dark.swatch.slice(3)).map(c => <i style={`background:${c}`}></i>)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div class="schemes" role="dialog" aria-label="Theme" hidden>
+            <div class="sch-head">
+              <span class="sch-k">theme · base16</span>
+              <div class="seg" role="radiogroup" aria-label="Mode">
+                <i class="seg-ind" aria-hidden="true"></i>
+                <button type="button" role="radio" data-m="light">Light</button>
+                <button type="button" role="radio" data-m="dark">Dark</button>
+                <button type="button" role="radio" data-m="auto">Auto</button>
+              </div>
+            </div>
+            <ul class="sch-grid" role="listbox" aria-label="base16 themes">
+              {themes.map((t, i) => (
+                <li role="option" tabindex="-1" data-id={t.id} data-label={t.label} data-light={JSON.stringify(t.light.swatch)} data-dark={JSON.stringify(t.dark.swatch)}
+                  style={`--i:${i};` + t.light.swatch.map((c, k) => `--l${k}:${c}`).join(';') + ';' + t.dark.swatch.map((c, k) => `--d${k}:${c}`).join(';')}>
+                  <span class="thumb" aria-hidden="true"><i class="t-head"></i><i class="t-l1"></i><i class="t-l2"></i><i class="t-l3"></i><i class="t-card"><b></b><b></b></i><i class="t-acc"></i></span>
+                  <span class="t-meta"><b>{t.label}</b><span class="t-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span>
+                  <svg class="check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l2.9 2.9 6-6.6" pathLength="1" /></svg>
+                </li>
+              ))}
+            </ul>
+            <p class="sch-foot">hover to preview · arrows to move · enter to keep</p>
+          </div>
         </div>
       </div>
     </header>

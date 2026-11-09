@@ -5,21 +5,24 @@ const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const load = k => { try { return localStorage.getItem(k); } catch { return null; } };
 
-/* ---------- theme: mode half + scheme half ---------- */
+/* ---------- theme: a sky switch for light/dark, and a panel of base16 themes ---------- */
 const theme = $('.theme');
 if (theme) {
-  const modeBtn = $('.mode', theme), schemeBtn = $('.scheme', theme), list = $('.schemes', theme);
-  const items = $$('li', list);
+  const modeBtn = $('.mode', theme), schemeBtn = $('.scheme', theme), panel = $('.schemes', theme);
+  const items = $$('.sch-grid li', panel), segs = $$('.seg button', panel), segInd = $('.seg-ind', panel);
+  const dark = () => root.dataset.mode === 'dark';
+  const osDark = matchMedia('(prefers-color-scheme: dark)');
   const sync = () => {
-    const dark = root.dataset.mode === 'dark';
-    modeBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
-    modeBtn.setAttribute('aria-pressed', String(dark));
+    modeBtn.setAttribute('aria-checked', String(dark()));
     const cur = items.find(li => li.dataset.id === root.dataset.scheme) ?? items[0];
     items.forEach(li => li.setAttribute('aria-selected', String(li === cur)));
     $('.nm', schemeBtn).textContent = cur.dataset.label;
-    $('.dots', schemeBtn).innerHTML = JSON.parse(cur.dataset[dark ? 'dark' : 'light']).slice(3, 7).map(c => `<i style="background:${c}"></i>`).join('');
+    const sw = JSON.parse(cur.dataset[dark() ? 'dark' : 'light']);
+    $('.wheel', schemeBtn).style.background = `conic-gradient(${sw[3]} 0 25%, ${sw[4]} 0 50%, ${sw[5]} 0 75%, ${sw[6]} 0)`;
+    const pref = root.dataset.pref || 'auto';
+    segs.forEach((b, i) => { const on = b.dataset.m === pref; b.setAttribute('aria-checked', String(on)); if (on) segInd.style.transform = `translateX(${i * 100}%)`; });
   };
-  // repaint inside a view transition, revealed as a circle from the click
+  // repaint inside a view transition, revealed as a circle from the click (kept as it was)
   const paint = (apply, x, y) => {
     if (!document.startViewTransition || reduce()) { apply(); sync(); return; }
     const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
@@ -29,35 +32,46 @@ if (theme) {
     });
   };
   const at = el => { const b = el.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; };
-  modeBtn.addEventListener('click', () => paint(() => {
-    root.dataset.mode = root.dataset.mode === 'dark' ? 'light' : 'dark';
-    save('mode', root.dataset.mode);
-  }, ...at(modeBtn)));
+  const setPref = (pref, from) => {
+    const mode = pref === 'auto' ? (osDark.matches ? 'dark' : 'light') : pref;
+    const change = mode !== root.dataset.mode;
+    const apply = () => { root.dataset.pref = pref; root.dataset.mode = mode; save('mode', pref); };
+    change ? paint(apply, ...at(from)) : (apply(), sync());
+  };
+  modeBtn.addEventListener('click', () => setPref(dark() ? 'light' : 'dark', $('.knob', modeBtn)));
+  segs.forEach(b => b.addEventListener('click', () => setPref(b.dataset.m, b)));
+  osDark.addEventListener('change', () => { if ((root.dataset.pref || 'auto') === 'auto') setPref('auto', modeBtn); });
 
   const open = on => {
-    list.hidden = !on; theme.classList.toggle('open', on); schemeBtn.setAttribute('aria-expanded', String(on));
-    if (on) { const sel = items.find(li => li.getAttribute('aria-selected') === 'true') ?? items[0]; sel.focus(); }
+    panel.hidden = !on; theme.classList.toggle('open', on); schemeBtn.setAttribute('aria-expanded', String(on));
+    if (on) { const sel = items.find(li => li.getAttribute('aria-selected') === 'true') ?? items[0]; sel.focus({ preventScroll: true }); }
   };
+  const restore = () => { if (theme.dataset.peek) { root.dataset.scheme = load('scheme') || 'marginalia'; delete theme.dataset.peek; sync(); } };
   const pick = li => {
     delete theme.dataset.peek;
     paint(() => { root.dataset.scheme = li.dataset.id; save('scheme', li.dataset.id); }, ...at(li));
+    $('.wheel', schemeBtn).animate([{ transform: 'rotate(0)' }, { transform: 'rotate(90deg)' }], { duration: reduce() ? 0 : 520, easing: 'cubic-bezier(.2,0,0,1)' });
     open(false); schemeBtn.focus();
   };
-  schemeBtn.addEventListener('click', () => open(list.hidden));
+  schemeBtn.addEventListener('click', () => open(panel.hidden));
+  const COLS = 2;
   items.forEach((li, i) => {
     li.addEventListener('click', () => pick(li));
     li.addEventListener('keydown', e => {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); }
+      const mv = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: COLS, ArrowUp: -COLS }[e.key];
+      if (mv) { e.preventDefault(); items[(i + mv + items.length) % items.length].focus(); }
       else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(li); }
-      else if (e.key === 'Escape') { open(false); schemeBtn.focus(); }
-      else if (e.key === 'Tab') open(false);
+      else if (e.key === 'Escape') { restore(); open(false); schemeBtn.focus(); }
+      else if (e.key === 'Tab') { restore(); open(false); }
     });
-    // preview a scheme while hovering it, without committing
-    li.addEventListener('mouseenter', () => { theme.dataset.peek = li.dataset.id; root.dataset.scheme = li.dataset.id; });
+    // preview a scheme while hovering (or arrowing onto) it, without committing
+    const peek = () => { theme.dataset.peek = li.dataset.id; root.dataset.scheme = li.dataset.id; };
+    li.addEventListener('mouseenter', peek); li.addEventListener('focus', peek);
   });
-  list.addEventListener('mouseleave', () => { if (theme.dataset.peek) { root.dataset.scheme = load('scheme') || 'marginalia'; delete theme.dataset.peek; } });
-  document.addEventListener('click', e => { if (!theme.contains(e.target) && !list.hidden) { open(false); list.dispatchEvent(new Event('mouseleave')); } });
+  $('.sch-grid', panel).addEventListener('mouseleave', restore);
+  document.addEventListener('click', e => { if (!theme.contains(e.target) && !panel.hidden) { restore(); open(false); } });
   sync();
+  theme.sync = sync;
 }
 
 /* ---------- top bar gets a rule once you scroll ---------- */
@@ -199,11 +213,10 @@ addEventListener('keydown', e => {
   else if (e.key === 'g') rewind();
   else if (e.key === 'd') $('.theme .mode')?.click();
   else if (e.key === 't') {
-    const items = $$('.schemes li'), i = items.findIndex(li => li.dataset.id === root.dataset.scheme);
+    const items = $$('.sch-grid li'), i = items.findIndex(li => li.dataset.id === root.dataset.scheme);
     const next = items[(i + 1) % items.length];
     root.dataset.scheme = next.dataset.id; save('scheme', next.dataset.id);
-    $('.theme .nm').textContent = next.dataset.label;
-    items.forEach(li => li.setAttribute('aria-selected', String(li === next)));
+    theme?.sync?.();
     notice(`theme · <b>${next.dataset.label}</b>`, 1400);
   } else if (e.key === 'x') {
     const cards = $$('.card.t-project').filter(c => { const r = c.getBoundingClientRect(); return r.top < innerHeight * .7 && r.bottom > 80; });
