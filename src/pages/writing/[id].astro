@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { weave } from '../../lib/ui';
+import { weave, withBase } from '../../lib/ui';
 
 export async function getStaticPaths() {
   const posts = await getCollection('writing', ({ data }) => !data.draft);
@@ -21,8 +21,8 @@ const body = weave(post.rendered?.html ?? '', post.data.branches);
     </header>
     <div class="col body" set:html={body} />
     <footer class="col post-foot mono">
-      <a href="/writing">← all writing</a>
-      <a href="/#journey">where this sits in the journey →</a>
+      <a href={withBase('/writing')}>← all writing</a>
+      <a href={withBase('/#journey')}>where this sits in the journey →</a>
     </footer>
   </article>
 </Base>

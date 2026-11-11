@@ -4,6 +4,10 @@
 import icons from '../data/icons.json';
 import { figure } from './figures';
 
+/** Prefix a root-absolute path with the deploy base (`/site` on GitHub Pages); leaves URLs and #fragments alone. */
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+export const withBase = (p: string) => (/^\/(?!\/)/.test(p) ? BASE + p : p);
+
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Simple Icons mark, drawn in currentColor so every base16 theme tints it. */
@@ -31,7 +35,7 @@ const SEALS: Record<string, { label: string; img?: string; icon?: string }> = {
 export function seal(key: string, cls = '') {
   const s = SEALS[key];
   if (!s) throw new Error(`unknown seal ${key}`);
-  const inner = s.img ? `<img src="${s.img}" alt="" loading="lazy" decoding="async">` : icon(s.icon!, 'ico');
+  const inner = s.img ? `<img src="${withBase(s.img)}" alt="" loading="lazy" decoding="async">` : icon(s.icon!, 'ico');
   return `<span class="seal seal-${key}${s.img ? ' raster' : ''} ${cls}" title="${esc(s.label)}" aria-label="${esc(s.label)}">${inner}</span>`;
 }
 export const sealLabel = (key: string) => SEALS[key].label;
@@ -43,7 +47,7 @@ export function inline(md = '') {
   let s = md.replace(/`([^`]+)`/g, (_, c) => keep(`<code>${esc(c)}</code>`));
   s = esc(s);
   s = s.replace(/\[([^\]]+)\]\(#sub:([\w-]+)\)/g, (_, t, id) => `<button class="tw sub" type="button" data-sub="${id}">${t}</button>`);
-  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, href) => `<a href="${href}">${t}</a>`);
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, href) => `<a href="${withBase(href)}">${t}</a>`);
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
   return s.replace(/\u0000(\d+)\u0000/g, (_, i) => parts[+i]);
 }
@@ -87,7 +91,7 @@ function cardInner(id: string, b: Branch, nested: boolean) {
       const metrics = b.metrics?.length ? `<dl class="metrics">${b.metrics.map(([n, suf, label], i) => `<div style="--i:${i}"><dt><span class="num" data-count="${n}">${n}</span>${esc(suf)}</dt><dd>${esc(label)}</dd></div>`).join('')}</dl>` : '';
       const points = b.points?.length ? `<ul class="pts">${b.points.map((p, i) => `<li style="--i:${i}">${inline(p)}</li>`).join('')}</ul>` : '';
       const stack = b.icons?.length ? `<p class="stack">${b.icons.map(n => `<span class="chip">${icon(n)}${esc(I[n].title)}</span>`).join('')}</p>` : '';
-      const sealHtml = b.seal ? (href ? `<a class="seal-link" href="${href}" tabindex="-1" aria-hidden="true">${seal(b.seal)}</a>` : seal(b.seal)) : '';
+      const sealHtml = b.seal ? (href ? `<a class="seal-link" href="${withBase(href)}" tabindex="-1" aria-hidden="true">${seal(b.seal)}</a>` : seal(b.seal)) : '';
       // compact by default: header, gist, the figure, the two strongest points and the numbers;
       // the full story, remaining points, stack and links unfold on hover, focus or "details"
       const pts = b.points ?? [], keys = pts.slice(0, 2), rest = pts.slice(2);
@@ -109,10 +113,10 @@ function cardInner(id: string, b: Branch, nested: boolean) {
 const I = icons as Record<string, { title: string; path: string }>;
 /** a card title that links out, with an arrow that slides on hover */
 const title = (t: string, href?: string) => href
-  ? `<a class="h-link" href="${href}">${esc(t)}<span class="arr" aria-hidden="true">${/^https?:/.test(href) ? '↗' : '→'}</span></a>`
+  ? `<a class="h-link" href="${withBase(href)}">${esc(t)}<span class="arr" aria-hidden="true">${/^https?:/.test(href) ? '↗' : '→'}</span></a>`
   : esc(t);
 // the first link already sits on the title, so the footer carries the rest
-const links = (b: Branch) => b.links && b.links.length > 1 ? `<p class="links">${b.links.slice(1).map(([t, h]) => `<a href="${h}">${esc(t)}${/^https?:/.test(h) ? ' ↗' : ''}</a>`).join('')}</p>` : '';
+const links = (b: Branch) => b.links && b.links.length > 1 ? `<p class="links">${b.links.slice(1).map(([t, h]) => `<a href="${withBase(h)}">${esc(t)}${/^https?:/.test(h) ? ' ↗' : ''}</a>`).join('')}</p>` : '';
 
 /** `.bpos > .sway > aside.card (+ nested .bpos.sub)`, the markup the branch engine expects. */
 export function renderBranch(id: string, b: Branch, nested = false): string {

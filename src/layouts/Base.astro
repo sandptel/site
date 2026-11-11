@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import themes from '../data/themes.json';
+import { withBase } from '../lib/ui';
 
 interface Props {
   title?: string;
@@ -15,7 +16,7 @@ const nav = [
   ['/writing', 'writing'],
 ];
 const here = Astro.url.pathname.replace(/\/$/, '') || '/';
-const current = (href: string) => (href !== '/#journey' && here.startsWith(href) ? 'page' : undefined);
+const current = (href: string) => (href !== '/#journey' && here.startsWith(withBase(href)) ? 'page' : undefined);
 ---
 <!doctype html>
 <html lang="en">
@@ -23,7 +24,7 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
     <title>{fullTitle}</title>
     <!-- before first paint: saved theme, else the OS mode -->
     <script is:inline>
@@ -44,7 +45,7 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
   <body>
     {wash && <><div class="wash ember" aria-hidden="true"></div><div class="wash lichen" aria-hidden="true"></div></>}
     <header class="top">
-      <a class="mark" href="/">sand<span>ptel</span></a>
+      <a class="mark" href={withBase('/')}>sand<span>ptel</span></a>
       <!-- now reading: compass for direction, the stop's mark, what it is, and how far down the page you are -->
       <div class="nowr" aria-hidden="true">
         <span class="nr-dial"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" /><g class="needle"><path class="nb" d="M12 3.5 L14 12 L12 20.5 L10 12 Z" /><path class="nt" d="M12 3.5 L14 12 L10 12 Z" /></g></svg></span>
@@ -58,7 +59,7 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
       </div>
       <div class="right">
         <nav aria-label="Primary">
-          <ul>{nav.map(([href, label]) => <li><a href={href} aria-current={current(href)}>{label}</a></li>)}</ul>
+          <ul>{nav.map(([href, label]) => <li><a href={withBase(href)} aria-current={current(href)}>{label}</a></li>)}</ul>
         </nav>
         <div class="theme">
           <!-- base16 theme: a colour wheel of the theme's accents, and its name -->

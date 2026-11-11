@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { withBase } from '../../lib/ui';
 
 const posts = (await getCollection('writing', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -12,7 +13,7 @@ const posts = (await getCollection('writing', ({ data }) => !data.draft))
     <p>Long-form notes from the work. Unfamiliar words grow explanations as you scroll.</p>
     <ul class="entries">
       {posts.map(p => (
-        <li><a class="row" href={`/writing/${p.id}`}><span class="t">{p.data.title}</span><time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</time>{p.data.summary && <span class="s">{p.data.summary}</span>}</a></li>
+        <li><a class="row" href={withBase(`/writing/${p.id}`)}><span class="t">{p.data.title}</span><time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</time>{p.data.summary && <span class="s">{p.data.summary}</span>}</a></li>
       ))}
     </ul>
   </section>
