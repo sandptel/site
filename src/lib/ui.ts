@@ -19,7 +19,7 @@ export function icon(name: string, cls = 'ico') {
 
 /** Organisation marks keep their own colours on a small tile; tech marks follow the theme. */
 const SEALS: Record<string, { label: string; img?: string; icon?: string }> = {
-  iitkgp: { label: 'IIT Kharagpur', img: '/logos/iitkgp.svg' },
+  iitkgp: { label: 'IIT Kharagpur', img: '/logos/iitkgp.webp' },
   gsoc: { label: 'Google Summer of Code', icon: 'googlesummerofcode' },
   ccx: { label: 'CCExtractor', img: '/logos/CCExtractor.png' },
   regolith: { label: 'Regolith', img: '/logos/regolith-lab.png' },

@@ -75,9 +75,11 @@ if (theme) {
 }
 
 /* ---------- top bar gets a rule once you scroll ---------- */
-const top = $('.top');
-const onScroll = () => { top.classList.toggle('scrolled', scrollY > 8); top.classList.toggle('reading', !!$('.nowr.on')); };
-addEventListener('scroll', onScroll, { passive: true }); onScroll();
+// a sentinel at the very top says when the page has scrolled: no scroll handler, no per-event layout read
+const top = $('.top'), sentinel = document.createElement('div');
+sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:8px;pointer-events:none';
+document.body.prepend(sentinel);
+new IntersectionObserver(([e]) => top.classList.toggle('scrolled', !e.isIntersecting)).observe(sentinel);
 
 /* ---------- logo wall: stagger in, tilt toward the pointer ---------- */
 const wall = $('.wall');
@@ -251,24 +253,39 @@ help?.addEventListener('click', e => { if (e.target === help) help.hidden = true
 const me = $('.me-card');
 if (me) {
   const btn = $('.flip', me), fa = $('.face-text.fa'), fb = $('.face-text.fb'), about = $('.about');
-  let touched = false, timer;
+  let timer;
+  const faces = $('.faces');
+  // the box takes the height of the side showing, so the shorter side leaves no gap
+  const fit = () => { faces.style.height = (me.dataset.face === 'a' ? fa : fb).offsetHeight + 'px'; };
+  new ResizeObserver(fit).observe(fa); new ResizeObserver(fit).observe(fb);
   const set = face => {
     if (me.dataset.face === face) return;
     me.dataset.face = face; btn.setAttribute('aria-pressed', String(face === 'b'));
-    fa.inert = face !== 'a'; fb.inert = face !== 'b';
+    fa.inert = face !== 'a'; fb.inert = face !== 'b'; fit();
     $('.hero-branch')?.classList.remove('on'); $$('.demo-tw.hot').forEach(b => b.classList.remove('hot'));
   };
-  // never swap the text under someone who is reading or pointing at it
+  // one early turn so the reader sees it turns, then it slows down: 5s, 10s, 15s, then every 20s
+  const GAPS = [1400, 5000, 10000, 15000, 20000];
+  let step = 0;
+  const next = () => GAPS[Math.min(step++, GAPS.length - 1)];
+  // never swap the text under someone who is reading or pointing at it, nor while the hero is off screen
   const busy = () => about.matches(':hover') || about.contains(document.activeElement) || !!$('.hero-branch.on');
-  const auto = () => { if (touched) return; if (busy()) { timer = setTimeout(auto, 1500); return; } set('b'); };
-  btn.addEventListener('click', () => { touched = true; clearTimeout(timer); set(me.dataset.face === 'a' ? 'b' : 'a'); });
-  if (!reduce()) {
-    timer = setTimeout(auto, 5200);
-    const first = () => { clearTimeout(timer); auto(); ['wheel', 'touchmove', 'scroll'].forEach(e => removeEventListener(e, first)); };
-    ['wheel', 'touchmove', 'scroll'].forEach(e => addEventListener(e, first, { passive: true }));
-  }
+  const away = () => { const r = about.getBoundingClientRect(); return document.hidden || r.bottom < 60 || r.top > innerHeight; };
+  const turn = () => {
+    clearTimeout(timer);
+    if (busy() || away()) { timer = setTimeout(turn, 1500); return; }
+    set(me.dataset.face === 'a' ? 'b' : 'a');
+    timer = setTimeout(turn, next());
+  };
+  // a click turns it now; the rhythm carries on from there
+  btn.addEventListener('click', () => { clearTimeout(timer); set(me.dataset.face === 'a' ? 'b' : 'a'); if (!reduce()) timer = setTimeout(turn, next()); });
+  if (!reduce()) timer = setTimeout(turn, next());
 }
 
 /* ---------- phone: a faint tick under the thumb on deliberate taps ---------- */
 if (navigator.vibrate && matchMedia('(hover: none)').matches)
   document.addEventListener('click', e => e.target.closest('.more, .flip, .niches button, .demo-tw, .mode') && navigator.vibrate(6));
+
+/* ---------- loops sleep off screen: a figure scrolled past stops costing frames ---------- */
+const sleeper = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('asleep', !e.isIntersecting)), { rootMargin: '120px 0px' });
+$$('.fig, .now, .hint, .mode, .nowr').forEach(el => sleeper.observe(el));

@@ -259,7 +259,7 @@
     // moods: paragraph centres
     G.moods.forEach(b => { const r = b.para.getBoundingClientRect(); b.mc = r.top + scrollY + r.height / 2; });
     G.svg.setAttribute('width', gel.clientWidth); G.svg.setAttribute('height', G.h);
-    G.dirty = false;
+    G.dirty = false; G.relaid = true; stale = true;
   }
 
   function layoutHero() {
@@ -281,6 +281,9 @@
   }
 
   function layoutAll() { mobile = mq.matches; groves.forEach(layout); layoutHero(); }
+
+  // SVG attributes are written only when they change: each write re-runs SVG layout
+  const A = (el, k, v) => { const c = el._a || (el._a = {}); v = String(v); if (c[k] !== v) { c[k] = v; el.setAttribute(k, v); } };
 
   // ---------- path builders ----------
   function gapRun(x0, ex, gy, seed) {
@@ -312,8 +315,8 @@
     const n1 = Math.hypot(mx - ex, my - gy) || 1, n2 = Math.hypot(cx - mx, cy - my) || 1;
     rootlet(b, 0, p1x, p1y, (mx - ex) / n1, (my - gy) / n1, clamp((b.p - .5) / .25, 0, 1));
     rootlet(b, 1, p2x, p2y, (cx - mx) / n2, (cy - my) / n2, clamp((b.p - .72) / .22, 0, 1));
-    b.b0.setAttribute('cx', f(sx)); b.b0.setAttribute('cy', f(sy)); b.b0.setAttribute('r', b.p > .02 ? 2 : 0);
-    b.b1.setAttribute('cx', f(cx)); b.b1.setAttribute('cy', f(cy)); b.b1.setAttribute('r', b.landed ? 3 : 0);
+    A(b.b0, 'cx', f(sx)); A(b.b0, 'cy', f(sy)); A(b.b0, 'r', b.p > .02 ? 2 : 0);
+    A(b.b1, 'cx', f(cx)); A(b.b1, 'cy', f(cy)); A(b.b1, 'r', b.landed ? 3 : 0);
   }
   function drawMobile(b) {
     const { sx, sy, gy, lane, cy, cardLeft } = b;
@@ -321,17 +324,26 @@
     const w = 0;
     d += ` C${f(lane - 2)},${f(gy + 24)} ${f(lane + w)},${f(cy - 50)} ${f(lane)},${f(cy - 14)} Q${f(lane)},${f(cy)} ${f(lane + 10)},${f(cy)} L${f(cardLeft)},${f(cy)}`;
     if (d !== b.d) { b.main.setAttribute('d', d); b.glow.setAttribute('d', d); b.d = d; b.rl.forEach(r => r.setAttribute('d', '')); }
-    b.b0.setAttribute('cx', f(sx)); b.b0.setAttribute('cy', f(sy)); b.b0.setAttribute('r', b.p > .02 ? 2 : 0);
-    b.b1.setAttribute('cx', f(cardLeft)); b.b1.setAttribute('cy', f(cy)); b.b1.setAttribute('r', b.landed ? 2.5 : 0);
+    A(b.b0, 'cx', f(sx)); A(b.b0, 'cy', f(sy)); A(b.b0, 'r', b.p > .02 ? 2 : 0);
+    A(b.b1, 'cx', f(cardLeft)); A(b.b1, 'cy', f(cy)); A(b.b1, 'r', b.landed ? 2.5 : 0);
   }
+  // numbers count up inside the frame loop (after its reads), editing the text node in place
+  const counting = new Set();
   function countUp(card) {
     card.querySelectorAll('.num[data-count]').forEach(n => {
       if (n.dataset.done) return; n.dataset.done = 1;
-      const end = +n.dataset.count, dp = (n.dataset.count.split('.')[1] || '').length, t0 = performance.now(), D = 900 + Math.min(end, 100) * 6;
       if (reduce) return;
-      const step = now => { const t = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - t, 3); n.textContent = (end * e).toFixed(dp); if (t < 1) requestAnimationFrame(step); };
-      n.textContent = (0).toFixed(dp); requestAnimationFrame(step);
+      const end = +n.dataset.count;
+      n.textContent = (0).toFixed((n.dataset.count.split('.')[1] || '').length);
+      counting.add({ t: n.firstChild, end, dp: (n.dataset.count.split('.')[1] || '').length, t0: performance.now(), D: 900 + Math.min(end, 100) * 6 });
     });
+  }
+  function tickCounts(now) {
+    for (const c of counting) {
+      const t = Math.min(1, (now - c.t0) / c.D), v = (c.end * (1 - Math.pow(1 - t, 3))).toFixed(c.dp);
+      if (c.t.nodeValue !== v) c.t.nodeValue = v;
+      if (t >= 1) counting.delete(c);
+    }
   }
   function setLanded(b, on) {
     if (on === b.landed) return; b.landed = on; b.pos.classList.toggle('landed', on);
@@ -340,7 +352,7 @@
   }
 
   // ---------- frame loop ----------
-  const washE = $('.wash.ember'), washL = $('.wash.lichen'), navNeedle = $('.nowr .needle'), heroNeedle = $('.compass .needle'), heroCap = $('.compass .cap b');
+  const washE = $('.wash.ember'), washL = $('.wash.lichen'), navNeedle = $('.nowr .nr-dial svg'), heroNeedle = $('.compass .needle-svg'), heroCap = $('.compass .cap b');
   const needles = [navNeedle, heroNeedle].filter(Boolean);
   let heroAngle = 38, capNow = '';
   const stops = $$('.stop[data-name]');
@@ -353,10 +365,10 @@
     el: p, name: postTitle, seal: '',
     desc: `¶ ${i + 1} of ${G.paras.length}` + ((w => w.length ? ' · ' + w.join(', ') : '')($$('.tw', p).map(b => b.textContent)))
   })));
-  let nrNow = null, nrSwapAt = 0;
+  let nrNow = null, nrSwapAt = 0; const topBar = $('.top');
   const nrSet = it => {
     if (it === nrNow) return; nrNow = it;
-    nowr.classList.toggle('on', !!it);
+    nowr.classList.toggle('on', !!it); topBar?.classList.toggle('reading', !!it);
     if (!it) return;
     nrName.textContent = it.name; nrDesc.textContent = it.desc;
     nrSeal.innerHTML = it.seal || SPRIG_SVG; nrSeal.classList.toggle('glyph', !it.seal);
@@ -364,6 +376,18 @@
     const t = performance.now(), calm = !fast && t - nrSwapAt > 300; nrSwapAt = t;
     [nrText, nrSeal].forEach(e => { e.classList.remove('swap'); if (calm) { void e.offsetWidth; e.classList.add('swap'); } });
   };
+  // positions are read once when the page's geometry changes, never per frame (a per-frame read forces layout)
+  let stale = true, heroBot = 0;
+  const trk = $('.nr-track'), heroEl = $('#hero');
+  new ResizeObserver(() => { stale = true; }).observe(document.body);
+  addEventListener('resize', () => { stale = true; });
+  function measure() {
+    stale = false; const y0 = scrollY;
+    for (const x of nrItems) x.top = x.el.getBoundingClientRect().top + y0;
+    for (const s of stopInfo) s.top = s.el.getBoundingClientRect().top + y0;
+    for (const G of groves) { G.left = G.el.getBoundingClientRect().left; for (const p of G.paras) { const r = p.getBoundingClientRect(); p._mid = r.top + y0 + r.height / 2; } }
+    heroBot = heroEl ? heroEl.getBoundingClientRect().bottom + y0 : 0;
+  }
   let last = performance.now(), lastScroll = 0;
   addEventListener('scroll', () => lastScroll = performance.now(), { passive: true });
 
@@ -412,6 +436,8 @@
     const dt = Math.min(1 / 30, (now - last) / 1000); last = now;
     const sy = scrollY, vh = innerHeight;
     let ember = 0, lichen = 0;
+    for (const G of groves) { if (G.animUntil > now) G.dirty = true; if (G.dirty) layout(G); }
+    if (stale) measure();
     vel += ((sy - lastSy) / Math.max(dt, 1 / 240) - vel) * Math.min(1, dt * 12); lastSy = sy;
     if (Math.abs(vel) > 40) { movingAt = now; setDir(vel > 0 ? 'down' : 'up'); }
     if (!fast && Math.abs(vel) > 2200 && !reduce && now - handAt < 400) { fast = true; root.dataset.speed = 'fast'; streak = true; }
@@ -419,10 +445,8 @@
     if (streak && !fast && Math.abs(vel) < 60 && now - handAt > 220) { streak = false; if (stopIdx >= 0) magnet(); }
     const lag = reduce ? 0 : clamp(-vel * .028, -40, 40); // cards have a little weight
     const read = Math.round(clamp(sy / Math.max(1, root.scrollHeight - vh), 0, 1) * 500) / 500;
-    if (read !== readNow) { readNow = read; root.style.setProperty('--read', read); }
+    if (read !== readNow) { readNow = read; trk?.style.setProperty('--read', read); }
     for (const G of groves) {
-      if (G.animUntil > now) G.dirty = true; // re-measure while a card unfolds so neighbours glide
-      if (G.dirty) layout(G);
       const visible = sy + vh > G.docTop - 300 && sy < G.docTop + G.h + 300;
       // moods
       G.moods.forEach(b => {
@@ -431,7 +455,7 @@
       });
       if (!visible) continue;
       const tp = (ALL || reduce) ? 1 : clamp((sy + vh * (G.mobile ? .86 : .8) - G.docTop - G.tTop) / Math.max(1, G.tLen), 0, 1);
-      G.trunks.forEach(t => t.style.strokeDashoffset = 1 - tp);
+      if (tp !== G._tp) { G._tp = tp; G.trunks.forEach(t => t.style.strokeDashoffset = 1 - tp); }
       for (const b of G.top) {
         // phone: cards land as they rise past the thumb, not a third of the screen later
         let target = (ALL || reduce) ? 1 : G.mobile ? clamp((sy + vh * 1.02 - b.trig) / (vh * .2) - b.stagger, 0, 1) : clamp((sy + vh * .8 - b.trig) / (vh * .28) - b.stagger, 0, 1);
@@ -442,15 +466,20 @@
         setLanded(b, b.landed ? b.p > .82 : b.p > .93);
         if (b.kind === 'node' && (b.p > .03) !== !!b.reached) { b.reached = b.p > .03; b.anchor.classList.toggle('reached', b.reached); }
         if (b.expanded && !b.lock) { const r = b.card.getBoundingClientRect(); if (r.bottom < -40 || r.top > vh + 40) b.fold(); }
-        b.main.style.strokeDashoffset = b.glow.style.strokeDashoffset = 1 - b.p;
-        if (G.mobile) { if (!b.noPath) drawMobile(b); else { b.main.setAttribute('d', ''); b.glow.setAttribute('d', ''); } }
+        // settled cards cost nothing: no writes unless progress or layout changed
+        const still = b.p === b._lp && !G.relaid; b._lp = b.p;
+        if (!still) b.main.style.strokeDashoffset = b.glow.style.strokeDashoffset = 1 - b.p;
+        if (G.mobile) { if (!still) { if (!b.noPath) drawMobile(b); else { b.main.setAttribute('d', ''); b.glow.setAttribute('d', ''); } } }
+        else if (still && b.rest && Math.abs(b.ty + lag - b.y) < .05) { b._still = true; }
         else {
+          b._still = false;
           // spring to target position (cards re-stack when a sub opens)
           if (reduce) { b.x = b.tx; b.y = b.ty; }
           else {
             const k = 170, c = 27;
             b.vx += (k * (b.tx - b.x) - c * b.vx) * dt; b.vy += (k * (b.ty + lag - b.y) - c * b.vy) * dt;
             b.x += b.vx * dt; b.y += b.vy * dt;
+            b.rest = Math.abs(b.vx) + Math.abs(b.vy) < .02 && Math.abs(b.tx - b.x) + Math.abs(b.ty + lag - b.y) < .05;
           }
           let dx = 0, dy = 0, rot = 0;
           if (false) { // ponytail: sway off by design; `!reduce && b.landed` brings it back
@@ -468,7 +497,7 @@
       }
       // reading lamp: paragraphs far from the eye line soften
       if (G.paras.length && !reduce) for (const p of G.paras) {
-        const r = p.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - vh * .45);
+        const d = Math.abs(p._mid - sy - vh * .45);
         const o = Math.round((1 - .42 * smooth(clamp((d - vh * .3) / (vh * .35), 0, 1))) * 50) / 50;
         if (o !== p._o) { p._o = o; p.style.opacity = o; }
       }
@@ -478,15 +507,17 @@
         s.p = reduce ? target : s.p + (target - s.p) * Math.min(1, dt * 7);
         if (Math.abs(s.p - target) < .002) s.p = target;
         setLanded(s, s.landed ? s.p > .8 : s.p > .92);
-        if (G.mobile) { s.main.setAttribute('d', ''); s.glow.setAttribute('d', ''); s.rl.forEach(r => r.setAttribute('d', '')); s.b0.setAttribute('r', 0); s.b1.setAttribute('r', 0); continue; }
+        if (s.p === s._lp && !G.relaid && (G.mobile || P._still)) continue; s._lp = s.p;
+        if (G.mobile) { s.main.setAttribute('d', ''); s.glow.setAttribute('d', ''); s.rl.forEach(r => r.setAttribute('d', '')); A(s.b0, 'r', 0); A(s.b1, 'r', 0); continue; }
         s.main.style.strokeDashoffset = s.glow.style.strokeDashoffset = 1 - s.p;
         const dir = s.dir;
         s.sx = P.X + (dir > 0 ? s.ax + s.aw : s.ax); s.sy = P.Y + s.ay + s.ah * .5 + 5; s.gy = P.Y + s.ay + s.ah - 2;
         s.ex = dir > 0 ? P.X + P.w + 8 : P.X - 8;
         const top = P.Y + s.oy, cx = dir > 0 ? P.X + s.ox + s.w - 40 : P.X + s.ox + 40;
         drawDesktop(s, cx, top, cx + dir * 14, top - 36);
-        s.b0.setAttribute('cx', f(s.sx)); s.b0.setAttribute('cy', f(s.sy));
+        A(s.b0, 'cx', f(s.sx)); A(s.b0, 'cy', f(s.sy));
       }
+      G.relaid = false;
     }
     // atmosphere
     if (washE) { washE.style.opacity = f(ember * 100) / 100; washL.style.opacity = f(lichen * 100) / 100; }
@@ -495,13 +526,13 @@
     const want = reduce ? 37 : moving ? (dirNow === 'up' ? 0 : 180) + Math.sin(t * 3.1) * 5 * Math.min(1, Math.abs(vel) / 800)
       : 38 + Math.sin(t * .7) * 40 + Math.sin(t * 1.9 + 1) * 18 + Math.sin(t * 4.3) * 4;
     angle += (((want - angle) % 360 + 540) % 360 - 180) * Math.min(1, dt * (moving ? 7 : 2.5));
-    if (navNeedle) navNeedle.style.transform = `rotate(${f(angle)}deg)`;
+    if (navNeedle && nrNow && Math.abs(angle - (navNeedle._a ?? 1e9)) > .05) { navNeedle._a = angle; navNeedle.style.transform = `rotate(${f(angle)}deg)`; }
     // the hero compass also notices you: hover near it and it points at your cursor
     if (heroNeedle) {
       const aim = window.__aim;
       const hw = aim == null ? angle : aim;
       heroAngle += (((hw - heroAngle) % 360 + 540) % 360 - 180) * Math.min(1, dt * (aim == null ? 8 : 10));
-      heroNeedle.style.transform = `rotate(${f(heroAngle)}deg)`;
+      if (sy < heroBot && Math.abs(heroAngle - (heroNeedle._a ?? 1e9)) > .05) { heroNeedle._a = heroAngle; heroNeedle.style.transform = `rotate(${f(heroAngle)}deg)`; }
       const cap = aim != null ? 'you' : moving ? (dirNow === 'up' ? 'north, probably' : 'south, probably') : 'unsure';
       if (cap !== capNow && heroCap) { capNow = cap; heroCap.textContent = cap; }
     }
@@ -510,8 +541,8 @@
     {
       let cur = '';
       let idx = -1, it = null;
-      if (nowr) { for (const x of nrItems) if (x.el.getBoundingClientRect().top < vh * .45) it = x; nrSet(sy > 240 ? it : null); }
-      stops.forEach((s, i) => { if (s.getBoundingClientRect().top < vh * .55) { cur = s.dataset.name; idx = i; } });
+      if (nowr) { for (const x of nrItems) if (x.top - sy < vh * .45) it = x; nrSet(sy > 240 ? it : null); }
+      stopInfo.forEach((s, i) => { if (s.top - sy < vh * .55) { cur = s.name; idx = i; } });
       if (idx !== stopIdx) { stopIdx = idx; beadSet(idx); }
       if (bead) {
         // only along the trunk
@@ -519,9 +550,10 @@
         // it rides under the page layer, so nodes simply pass over it: no on/off flicker at each stop
         const on = fast && idx >= 0 && G && mid > G.docTop + G.tTop && mid < G.docTop + G.tTop + G.tLen;
         if (on !== bead._on) { bead._on = on; bead.classList.toggle('on', !!on); }
-        if (on) { const x = Math.round(G.el.getBoundingClientRect().left + (G.mobile ? (G.colL || 34) - 2 : (G.colL + G.colR) / 2)); if (x !== bead._x) { bead._x = x; bead.style.left = x + 'px'; } }
+        if (on) { const x = Math.round(G.left + (G.mobile ? (G.colL || 34) - 2 : (G.colL + G.colR) / 2)); if (x !== bead._x) { bead._x = x; bead.style.left = x + 'px'; } }
       }
     }
+    tickCounts(now);
     requestAnimationFrame(frame);
   }
 

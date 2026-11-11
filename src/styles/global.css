@@ -1,4 +1,10 @@
 @import './themes.css';
+/* self-hosted (latin): no third-party round trips before the first paint */
+@font-face { font-family: 'Newsreader'; font-style: normal; font-weight: 300 500; font-display: swap; src: url('../assets/fonts/newsreader.woff2') format('woff2'); }
+@font-face { font-family: 'Newsreader'; font-style: italic; font-weight: 300 400; font-display: swap; src: url('../assets/fonts/newsreader-italic.woff2') format('woff2'); }
+@font-face { font-family: 'Young Serif'; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fonts/young-serif.woff2') format('woff2'); }
+@font-face { font-family: 'Fragment Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fonts/fragment-mono.woff2') format('woff2'); }
+
 
 /* ============ tokens that are not colour ============ */
 :root {
@@ -231,10 +237,11 @@ h1.name .l2 { color: var(--accent); }
 /* a lit LED: glossy highlight, a breathing glow and a ripple */
 .now .live { position: relative; flex: none; width: 10px; height: 10px; border-radius: 50%;
   background: radial-gradient(circle at 34% 30%, #fff 0 10%, color-mix(in srgb, var(--live) 55%, #fff) 24%, var(--live) 58%, color-mix(in srgb, var(--live) 70%, #000) 100%);
-  box-shadow: 0 0 4px 1px color-mix(in srgb, var(--live) 80%, transparent), 0 0 14px 2px color-mix(in srgb, var(--live) 45%, transparent);
-  animation: led 2.4s ease-in-out infinite; }
+  box-shadow: 0 0 4px 1px color-mix(in srgb, var(--live) 80%, transparent); }
+/* the glow breathes on its own layer (opacity + scale), so the LED never repaints */
+.now .live::before { content: ""; position: absolute; inset: -5px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--live) 50%, transparent) 30%, transparent 70%); animation: led 2.4s ease-in-out infinite; }
 .now .live::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; border: 1.5px solid var(--live); animation: ripple 2.4s var(--ease) infinite; }
-@keyframes led { 50% { box-shadow: 0 0 3px 0 color-mix(in srgb, var(--live) 60%, transparent), 0 0 8px 1px color-mix(in srgb, var(--live) 25%, transparent); filter: brightness(.9); } }
+@keyframes led { 50% { opacity: .45; transform: scale(.8); } }
 @keyframes ripple { 0% { transform: scale(1); opacity: .8; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
 .hint { display: inline-flex; align-items: center; gap: 10px; margin-top: 34px; color: var(--muted); text-decoration: none; }
 .hint svg { width: 16px; height: 26px; transform: rotate(-14deg); transition: transform var(--t2) var(--ease); }
@@ -249,7 +256,9 @@ h1.name .l2 { color: var(--accent); }
 .compass .needle { transform-origin: 66px 66px; }
 .compass .n-tip { fill: var(--ember); }
 .compass .n-body { fill: none; stroke: currentColor; }
-.compass { display: block; text-decoration: none; cursor: pointer; border-radius: 12px; }
+.compass { display: block; text-decoration: none; cursor: pointer; border-radius: 12px; position: relative; }
+.compass .needle-svg { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; will-change: transform; }
+.nr-dial svg { transform-origin: 50% 50%; will-change: transform; }
 .compass .cap { display: block; margin-top: 10px; font: 10.5px var(--f-mono); letter-spacing: .06em; color: var(--muted); }
 .compass .cap b { font-weight: 400; color: var(--fg); transition: color var(--t2) var(--ease); }
 .compass:hover .ring:first-child { stroke: var(--accent); }
@@ -325,7 +334,7 @@ h1.name .l2 { color: var(--accent); }
 .roots .br-mood.tone-good .main { stroke: var(--live); }
 .roots .br-mood .main { stroke: var(--ember); }
 .roots .hot .main { opacity: 1; stroke-width: 1.4; }
-.roots .bud { fill: var(--accent); transition: r var(--t2) var(--ease); }
+.roots .bud { fill: var(--accent); } /* no transition on r: geometry tweens re-run SVG layout every frame */
 .roots .br-sub .bud { fill: var(--nest); }
 .roots .trunk { stroke: var(--faint); stroke-width: 1; stroke-dasharray: 1 1; }
 .roots .trunk.wide { display: none; }
@@ -510,14 +519,14 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 @keyframes tgbg { 10%, 45% { background: var(--accent); } 55% { background: var(--b02); } }
 @keyframes tgknob { 10%, 45% { transform: translateX(7px); background: var(--b00); } 55% { transform: none; } }
 .fig-cosmic .slider { height: 3px; border-radius: 2px; background: var(--b02); position: relative; margin-top: 2px; }
-.fig-cosmic .slider span { position: absolute; left: 0; top: 0; bottom: 0; width: 40%; background: var(--accent); border-radius: 2px; }
+.fig-cosmic .slider span { position: absolute; left: 0; top: 0; bottom: 0; width: 78%; background: var(--accent); border-radius: 2px; transform: scaleX(.513); transform-origin: left; }
 .landed .fig-cosmic .slider span { animation: slide 4.8s var(--ease) infinite alternate; }
-@keyframes slide { to { width: 78%; } }
+@keyframes slide { to { transform: none; } }
 .fig-cosmic .dock { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); display: flex; gap: 4px; padding: 3px 5px 5px; background: color-mix(in srgb, var(--b00) 88%, transparent); border-radius: 6px; }
 .fig-cosmic .dock b { width: 9px; height: 9px; border-radius: 3px; background: var(--b03); } .fig-cosmic .dock b:nth-child(3) { background: var(--accent); }
 .fig-cosmic .dock i { position: absolute; bottom: 2px; left: 23px; width: 5px; height: 2px; border-radius: 1px; background: var(--accent); }
 .landed .fig-cosmic .dock i { animation: dock 6s var(--ease) infinite; }
-@keyframes dock { 0%, 30% { left: 23px; } 40%, 70% { left: 49px; } 80%, 100% { left: 10px; } }
+@keyframes dock { 0%, 30% { transform: none; } 40%, 70% { transform: translateX(26px); } 80%, 100% { transform: translateX(-13px); } }
 
 /* fan-out */
 .fig-fanout { position: relative; display: grid; justify-items: center; font: 12px var(--f-mono); }
@@ -550,11 +559,11 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .fig-nix .one { position: absolute; left: 0; right: 0; top: 26px; display: flex; align-items: center; gap: 8px; padding: 9px 12px; font-size: 12.5px; background: var(--sunk); border: 1px solid var(--accent); color: var(--fg); opacity: 0; }
 .fig-nix .one .ico { color: var(--accent); font-size: 16px; }
 .fig-nix .one b { color: var(--live); font-weight: 400; }
-.fig-nix .one span { overflow: hidden; white-space: nowrap; display: inline-block; max-width: 0; }
+.fig-nix .one span { white-space: nowrap; display: inline-block; clip-path: inset(0 100% 0 0); }
 .landed .fig-nix .one { animation: oneIn 7s var(--ease) infinite; }
 .landed .fig-nix .one span { animation: type 7s steps(30, end) infinite; }
 @keyframes oneIn { 0%, 48% { opacity: 0; transform: translateY(6px); } 54%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-@keyframes type { 0%, 54% { max-width: 0; } 74%, 100% { max-width: 32ch; } }
+@keyframes type { 0%, 54% { clip-path: inset(0 100% 0 0); } 74%, 100% { clip-path: inset(0 0 0 0); } }
 .fig-nix .arch { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px !important; }
 .fig-nix .arch span { font: 10.5px var(--f-mono); color: var(--live); border: 1px solid color-mix(in srgb, var(--live) 40%, transparent); padding: 2px 7px; border-radius: 999px; }
 
@@ -602,9 +611,9 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .fig-swap .bar { position: relative; height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
 .fig-swap .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
 .fig-swap .bar .was { width: 100%; background: color-mix(in srgb, var(--muted) 30%, transparent); }
-.fig-swap .bar .now { width: 100%; background: var(--accent); }
+.fig-swap .bar .now { width: 100%; background: var(--accent); transform-origin: left; }
 .landed .fig-swap .bar .now { animation: shed 7s var(--ease) infinite; }
-@keyframes shed { 0%, 30% { width: 100%; } 50%, 92% { width: 60%; } 100% { width: 100%; } }
+@keyframes shed { 0%, 30% { transform: none; } 50%, 92% { transform: scaleX(.6); } 100% { transform: none; } }
 .fig-swap .weight b { font: 400 18px var(--f-term); color: var(--live); }
 
 /* GC scoreboard */
@@ -740,9 +749,9 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 
 /* kitetsu */
 .fig-kit .wave { display: flex; align-items: center; gap: 3px; height: 34px; }
-.fig-kit .wave i { flex: 1; height: 20%; background: var(--accent); border-radius: 1px; opacity: .75; }
+.fig-kit .wave i { flex: 1; height: 100%; background: var(--accent); border-radius: 1px; opacity: .75; transform: scaleY(.2); }
 .landed .fig-kit .wave i { animation: bar 1.3s ease-in-out infinite alternate; animation-delay: calc(var(--i) * -97ms); }
-@keyframes bar { 0% { height: 12%; } 40% { height: 85%; } 70% { height: 35%; } 100% { height: 60%; } }
+@keyframes bar { 0% { transform: scaleY(.12); } 40% { transform: scaleY(.85); } 70% { transform: scaleY(.35); } 100% { transform: scaleY(.6); } }
 .fig-kit .model { display: flex; align-items: center; gap: 7px; font: 10.5px var(--f-mono); color: var(--muted); margin: 6px 0 !important; }
 .fig-kit .cue { display: grid; gap: 2px; padding: 9px 11px; background: var(--sunk); border-left: 2px solid var(--nest); }
 .fig-kit .cue small { font: 10px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--nest); }
@@ -876,7 +885,7 @@ html:not(.js) .slot { margin: 10px 0 30px; }
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .wander path { stroke-dashoffset: 0; }
   .flow .pulse, .fig-fanout .pk, .fig-wado .frame { display: none; }
-  .fig-nix .one { opacity: 1; } .fig-nix .one span { max-width: none; } .fig-nix .pile { display: none; }
+  .fig-nix .one { opacity: 1; } .fig-nix .one span { clip-path: none; } .fig-nix .pile { display: none; }
   .js .fig-term .l, .js .fig-prs li, .js .pts li, .js .keys li { opacity: 1; transform: none; }
   .fig-kit .cue b { opacity: 1; }
   .fig-degree .fill { transform: scaleX(1); }
@@ -1012,8 +1021,8 @@ kbd { font: 11px/1 var(--f-mono); padding: 2px 6px; border: 1px solid var(--rule
 .me-card figcaption .ico { font-size: 15px; color: var(--fg); }
 .me-card .cap-b, .me-card[data-face="b"] .cap-a { opacity: 0; transform: translateY(4px); }
 .me-card[data-face="b"] .cap-b { opacity: 1; transform: none; }
-/* the two texts share one cell, so swapping never moves the page */
-.faces { display: grid; }
+/* the two texts share one cell; the cell eases to the height of the side showing */
+.faces { display: grid; align-items: start; overflow: clip; padding-bottom: 8px; margin-bottom: -8px; box-sizing: content-box; transition: height 620ms var(--ease-emph) 120ms; }
 .face-text { grid-area: 1 / 1; transition: opacity 460ms var(--ease) 260ms, transform 620ms var(--ease-emph) 260ms, visibility 0s linear 0s; }
 .face-text[inert] { opacity: 0; transform: translateY(8px); visibility: hidden; transition: opacity 260ms var(--ease-in), transform 260ms var(--ease-in), visibility 0s linear 260ms; }
 .face-text p, .about-more { font-size: 20px; line-height: 1.68; margin: 0 0 .9em; text-wrap: pretty; }
@@ -1030,7 +1039,7 @@ kbd { font: 11px/1 var(--f-mono); padding: 2px 6px; border: 1px solid var(--rule
   .me-card { width: 150px; }
   .face-text p, .about-more { font-size: 18px; }
 }
-@media (prefers-reduced-motion: reduce) { .flip-in, .face-text { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .flip-in, .face-text, .faces { transition: none !important; } }
 
 .hero span.demo-tw { cursor: pointer; text-decoration-line: underline; text-decoration-style: dotted; text-decoration-thickness: 1.5px; text-underline-offset: 5px; }
 
@@ -1075,3 +1084,13 @@ kbd { font: 11px/1 var(--f-mono); padding: 2px 6px; border: 1px solid var(--rule
   .fnav { display: flex; gap: 18px; width: 100%; }
   .fnav a { color: var(--fg); text-decoration: none; }
 }
+
+/* ============ rendering budget ============ */
+.asleep, .asleep *, .asleep *::before, .asleep *::after { animation-play-state: paused !important; }
+.fig { contain: layout; } /* a figure's looping layout never reflows the page around it */
+@media (max-width: 720px), (hover: none) {
+  /* blurring what scrolls under the bar is the priciest thing a phone GPU does here; a solid bar reads the same */
+  .top { backdrop-filter: none; background: color-mix(in srgb, var(--bg) 97%, transparent); }
+}
+/* below the journey: not laid out or painted until the reader is near (sizes are remembered once seen) */
+.home-writing, .places, .coda, footer.foot { content-visibility: auto; contain-intrinsic-size: auto 640px; }

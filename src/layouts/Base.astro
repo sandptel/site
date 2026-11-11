@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import themes from '../data/themes.json';
 import { withBase } from '../lib/ui';
+import newsreader from '../assets/fonts/newsreader.woff2?url';
 
 interface Props {
   title?: string;
@@ -38,9 +39,8 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(withB
         if (/[?&]all|#all/.test(location.search + location.hash)) r.classList.add('all');
       })();
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Young+Serif&display=swap" />
+    <!-- only the reading face is on the critical path; the others swap in when used -->
+    <link rel="preload" as="font" type="font/woff2" href={newsreader} crossorigin />
   </head>
   <body>
     {wash && <><div class="wash ember" aria-hidden="true"></div><div class="wash lichen" aria-hidden="true"></div></>}

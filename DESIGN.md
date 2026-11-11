@@ -54,3 +54,9 @@ Motion: branches drawn by scroll in both directions · cards settle with ease-ou
 - Hero terms open as a bottom sheet (tap elsewhere or pull it down to close); one tap fires enter/focus/click, so only the click decides on touch.
 - Niche filters are one swipeable row; the places wall is three seals across; footer carries the nav when the top nav hides (≤460px).
 - No hover on touch: presses answer instead (scale/tint), copy that says "hover" or "press ?" is swapped or hidden, and Android gets a 6ms tick on deliberate taps.
+
+## Rendering budget (2026-11)
+- Measured on a 390px phone at 4x CPU, full scroll: layouts ~1000 → ~325, forced layouts mostly gone, style ~0.3ms/frame real-device, HTML 361KB → 234KB (62KB gzip), first paint ~280ms.
+- Compass needles are separate composited SVG layers; the "now" LED glow breathes with opacity/scale; header blur is off on touch screens.
+- Photo flips: an early turn at ~1.4s, then 5s, 10s, 15s, then every 20s; only while the bio is on screen and nobody is reading/hovering it. The text box eases to the height of the side showing.
+- Guardrail: `npm run perf` (budgets in `scripts/perf.mjs`).
