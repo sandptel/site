@@ -958,7 +958,7 @@ kbd { font: 11px/1 var(--f-mono); padding: 2px 6px; border: 1px solid var(--rule
 .hero-branch .card { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 8%, transparent), var(--shadow); }
 .hero-branch .card p:not(.ctype) { font-size: 15px; }
 .hb-line path { stroke-linecap: round; }
-.hb-line { position: absolute; left: 0; top: -26px; overflow: visible; }
+.hb-line { position: absolute; left: 0; top: -26px; overflow: visible; pointer-events: none; }
 .hb-line path { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset var(--t3) var(--ease); }
 .hero-branch.on .hb-line path { stroke-dashoffset: 0; }
 
@@ -1033,3 +1033,45 @@ kbd { font: 11px/1 var(--f-mono); padding: 2px 6px; border: 1px solid var(--rule
 @media (prefers-reduced-motion: reduce) { .flip-in, .face-text { transition: none !important; } }
 
 .hero span.demo-tw { cursor: pointer; text-decoration-line: underline; text-decoration-style: dotted; text-decoration-thickness: 1.5px; text-underline-offset: 5px; }
+
+/* ============ phone: the same tree, tuned for a thumb ============ */
+.k-touch, .fnav { display: none; }
+@media (hover: none) {
+  html { -webkit-tap-highlight-color: transparent; }
+  a, button, [role="button"] { touch-action: manipulation; }
+  .k-mouse { display: none; }
+  .k-touch { display: inline; }
+  /* no hover here, so a press answers instead */
+  .wall a:active { transform: scale(.97); border-color: var(--accent); transition-duration: 80ms; }
+  .more:active { background: var(--sunk); }
+  .flip:active .flip-in { scale: .97; }
+}
+@media (max-width: 720px) {
+  .hero { padding-top: 28px; }
+  .compass { top: 66px; } /* level with the photo */
+  /* niches: one swipeable row instead of a stack of pills */
+  .niches { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin-inline: 0; padding: 2px 16px; scroll-snap-type: x proximity; scroll-padding-inline: 16px; scrollbar-width: none; overscroll-behavior-x: contain; mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 36px), transparent); }
+  .niches::-webkit-scrollbar { display: none; }
+  .niches li { flex: none; scroll-snap-align: start; }
+  /* a term's card rises as a sheet from the bottom edge, and can be pulled back down */
+  .hero-branch { position: fixed; z-index: 60; left: 10px !important; right: 10px; top: auto !important; bottom: calc(10px + env(safe-area-inset-bottom)); width: auto; opacity: 1; transform: translateY(calc(100% + 24px)); }
+  .hero-branch.on { transform: translateY(var(--pull, 0px)); transition: transform var(--t3) var(--ease-emph); }
+  .hero-branch.pulling { transition: none; }
+  .hero-branch .hb-line { display: none; }
+  .hero-branch .card { position: relative; max-height: 60vh; overflow: auto; overscroll-behavior: contain; padding-top: 24px; box-shadow: 0 -1px 0 var(--rule), 0 18px 48px -12px rgb(0 0 0 / .35); }
+  .hero-branch .card::before { content: ""; position: absolute; top: 9px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--rule); }
+  .hero-branch .card p:not(.ctype) { font-size: 16.5px; }
+}
+@media (max-width: 520px) {
+  /* places: a wall of seals, three across */
+  .wall { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .wall a { flex-direction: column; justify-content: flex-start; text-align: center; gap: 10px; padding: 14px 6px 12px; }
+  .wall .seal { --s: 52px; }
+  .wall .who b { font-size: 13.5px; line-height: 1.2; }
+  .wall .who small { font-size: 9.5px; margin-top: 3px; }
+  .wall .who em { display: none; }
+}
+@media (max-width: 460px) {
+  .fnav { display: flex; gap: 18px; width: 100%; }
+  .fnav a { color: var(--fg); text-decoration: none; }
+}

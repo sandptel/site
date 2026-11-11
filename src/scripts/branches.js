@@ -430,10 +430,11 @@
         if (b.mood === 'ember') ember = Math.max(ember, w); else lichen = Math.max(lichen, w);
       });
       if (!visible) continue;
-      const tp = (ALL || reduce) ? 1 : clamp((sy + vh * .8 - G.docTop - G.tTop) / Math.max(1, G.tLen), 0, 1);
+      const tp = (ALL || reduce) ? 1 : clamp((sy + vh * (G.mobile ? .86 : .8) - G.docTop - G.tTop) / Math.max(1, G.tLen), 0, 1);
       G.trunks.forEach(t => t.style.strokeDashoffset = 1 - tp);
       for (const b of G.top) {
-        let target = (ALL || reduce) ? 1 : clamp((sy + vh * (G.mobile ? .94 : .8) - b.trig) / (vh * .28) - b.stagger, 0, 1);
+        // phone: cards land as they rise past the thumb, not a third of the screen later
+        let target = (ALL || reduce) ? 1 : G.mobile ? clamp((sy + vh * 1.02 - b.trig) / (vh * .2) - b.stagger, 0, 1) : clamp((sy + vh * .8 - b.trig) / (vh * .28) - b.stagger, 0, 1);
         if (b.pinned) target = 1;
         const rate = target < b.p && dirNow === 'up' ? 4.2 : 9; // rewinding folds a touch slower, so you see it
         b.p = (ALL || reduce) ? target : b.p + (target - b.p) * Math.min(1, dt * rate);

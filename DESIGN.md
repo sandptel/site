@@ -48,3 +48,9 @@ Motion: branches drawn by scroll in both directions · cards settle with ease-ou
 - [x] Journey from the resume + GitHub, with animated figures per stop
 - [ ] Replace placeholder voice lines (see Decisions 2026-11-10)
 - [ ] Self-host fonts; set `site` in astro.config.mjs; RSS
+
+## Phone
+- Same tree, tuned for a thumb: cards land as they rise past ~80% of the screen (desktop waits for 80% then eases), the trunk keeps pace.
+- Hero terms open as a bottom sheet (tap elsewhere or pull it down to close); one tap fires enter/focus/click, so only the click decides on touch.
+- Niche filters are one swipeable row; the places wall is three seals across; footer carries the nav when the top nav hides (≤460px).
+- No hover on touch: presses answer instead (scale/tint), copy that says "hover" or "press ?" is swapped or hidden, and Android gets a 6ms tick on deliberate taps.

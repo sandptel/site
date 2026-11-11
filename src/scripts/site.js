@@ -163,16 +163,30 @@ if (hb && hero) {
     window.__branches?.mark('hero:' + w.dataset.def);
   };
   const later = () => { hideT = setTimeout(() => show(null), 450); };
+  // one tap fires enter, focus and click; only the click decides on touch
+  let ptr = 0, shownAt = 0;
+  const open = w => { if (cur !== w) { show(w); shownAt = performance.now(); } };
   $$('.demo-tw').forEach(w => {
-    w.addEventListener('mouseenter', () => cur !== w && show(w));
-    w.addEventListener('focus', () => show(w));
-    w.addEventListener('click', () => show(cur === w ? null : w));
+    w.addEventListener('pointerdown', () => ptr = performance.now());
+    w.addEventListener('pointerenter', e => e.pointerType === 'mouse' && open(w));
+    w.addEventListener('focus', () => performance.now() - ptr > 500 && open(w));
+    w.addEventListener('click', () => (cur === w && performance.now() - shownAt > 350 ? show(null) : open(w)));
     w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(cur === w ? null : w); } });
-    w.addEventListener('mouseleave', later);
-    w.addEventListener('blur', later);
+    w.addEventListener('pointerleave', e => e.pointerType === 'mouse' && later());
+    w.addEventListener('blur', () => performance.now() - ptr > 500 && later());
   });
   hb.addEventListener('mouseenter', () => clearTimeout(hideT));
   hb.addEventListener('mouseleave', later);
+  // phone: the card is a bottom sheet; tap elsewhere or pull it down to put it away
+  document.addEventListener('click', e => cur && !hb.contains(e.target) && !e.target.closest('.demo-tw') && show(null));
+  let y0 = null;
+  hb.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; }, { passive: true });
+  hb.addEventListener('touchmove', e => { if (y0 === null) return; const dy = Math.max(0, e.touches[0].clientY - y0); hb.style.setProperty('--pull', dy + 'px'); hb.classList.add('pulling'); }, { passive: true });
+  hb.addEventListener('touchend', () => {
+    const dy = parseFloat(hb.style.getPropertyValue('--pull')) || 0;
+    hb.classList.remove('pulling'); hb.style.removeProperty('--pull'); y0 = null;
+    if (dy > 56) show(null);
+  });
   addEventListener('resize', () => cur && place(cur));
 }
 
@@ -245,7 +259,7 @@ if (me) {
     $('.hero-branch')?.classList.remove('on'); $$('.demo-tw.hot').forEach(b => b.classList.remove('hot'));
   };
   // never swap the text under someone who is reading or pointing at it
-  const busy = () => about.matches(':hover') || about.contains(document.activeElement);
+  const busy = () => about.matches(':hover') || about.contains(document.activeElement) || !!$('.hero-branch.on');
   const auto = () => { if (touched) return; if (busy()) { timer = setTimeout(auto, 1500); return; } set('b'); };
   btn.addEventListener('click', () => { touched = true; clearTimeout(timer); set(me.dataset.face === 'a' ? 'b' : 'a'); });
   if (!reduce()) {
@@ -254,3 +268,7 @@ if (me) {
     ['wheel', 'touchmove', 'scroll'].forEach(e => addEventListener(e, first, { passive: true }));
   }
 }
+
+/* ---------- phone: a faint tick under the thumb on deliberate taps ---------- */
+if (navigator.vibrate && matchMedia('(hover: none)').matches)
+  document.addEventListener('click', e => e.target.closest('.more, .flip, .niches button, .demo-tw, .mode') && navigator.vibrate(6));

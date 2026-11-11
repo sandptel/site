@@ -100,7 +100,7 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(withB
                 </li>
               ))}
             </ul>
-            <p class="sch-foot">hover to preview · arrows to move · enter to keep</p>
+            <p class="sch-foot"><span class="k-mouse">hover to preview · arrows to move · enter to keep</span><span class="k-touch">tap a theme to keep it</span></p>
           </div>
         </div>
       </div>
@@ -113,7 +113,8 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(withB
         <a href="https://github.com/sandptel">github ↗</a>
         <a href="https://linkedin.com/in/sandptel">linkedin ↗</a>
       </span>
-      <span class="mono">I use NixOS, btw · press <kbd>?</kbd> for keys</span>
+      <nav class="fnav mono" aria-label="Footer">{nav.map(([href, label]) => <a href={withBase(href)}>{label}</a>)}</nav>
+      <span class="mono">I use NixOS, btw<span class="k-mouse"> · press <kbd>?</kbd> for keys</span></span>
     </footer>
     <div class="keys-help" role="dialog" aria-modal="true" aria-labelledby="keys-h" hidden>
       <div class="kh-card">
