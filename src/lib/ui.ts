@@ -92,9 +92,9 @@ function cardInner(id: string, b: Branch, nested: boolean) {
       const points = b.points?.length ? `<ul class="pts">${b.points.map((p, i) => `<li style="--i:${i}">${inline(p)}</li>`).join('')}</ul>` : '';
       const stack = b.icons?.length ? `<p class="stack">${b.icons.map(n => `<span class="chip">${icon(n)}${esc(I[n].title)}</span>`).join('')}</p>` : '';
       const sealHtml = b.seal ? (href ? `<a class="seal-link" href="${withBase(href)}" tabindex="-1" aria-hidden="true">${seal(b.seal)}</a>` : seal(b.seal)) : '';
-      // compact by default: header, gist, the figure, the two strongest points and the numbers;
-      // the full story, remaining points, stack and links unfold on hover, focus or "details"
-      const pts = b.points ?? [], keys = pts.slice(0, 2), rest = pts.slice(2);
+      // compact by default: header, gist, the figure and the numbers;
+      // the story, the points, stack and links unfold on hover, focus or "details"
+      const pts = b.points ?? [], keys: string[] = [], rest = pts; // collapsed stays light: points live in the expanded view
       const nSubs = Object.keys(b.subs ?? {}).length, nLinks = (b.links?.length ?? (href ? 1 : 0));
       const head = `<header class="ph">${sealHtml}<div><p class="ctype">${esc(b.dates ?? 'project')}</p><h3>${title(b.title ?? id, href)}</h3>${b.role ? `<p class="role">${esc(b.role)}</p>` : ''}</div></header>`;
       // a point may lead with `{fig:name}` to carry its own small figure

@@ -263,29 +263,21 @@
   }
 
   function layoutHero() {
-    const hero = $('#hero'), svg = hero && $('.wander', hero), end = $('#bio-end');
-    if (!svg || !end || !groves.length) return;
-    const hr = hero.getBoundingClientRect(), er = end.getBoundingClientRect();
-    const W = hr.width, H = hr.height, nb = $('.intro', hero).getBoundingClientRect().bottom - hr.top;
-    const bx = er.right - hr.left + 10, by = er.top - hr.top + er.height * .55;
-    // wander out from "directions", around the right of the text, and land on "this way, probably"
-    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - hr.left, r: r.right - hr.left, t: r.top - hr.top, b: r.bottom - hr.top, h: r.height }; };
-    const hint = $('.hint', hero), nowEl = $('.now', hero);
-    if (!hint) return;
-    const hi = rel(hint), nw = nowEl ? rel(nowEl) : { r: bx, b: nb };
-    const X = v => clamp(v, 12, W - 12);
-    const reach = $('.reach', hero);
-    const edge = Math.max(rel($('.intro', hero)).r, nw.r, reach ? rel(reach).r : 0) + 36;
-    const pts = mobile
-      ? [[bx, by], [X(bx + 30), by + 26], [X(W - 24), nb - 20], [X(W - 30), nw.b + 10], [hi.r + 20, hi.t + hi.h / 2]]
-      : [[bx, by], [X(edge - 40), by + 4], [X(edge + 10), (by + nb) / 2 + 10], [X(edge - 10), nw.b + 12], [hi.r + 24, hi.t + hi.h / 2]];
+    // the path leaves the compass and settles on "this way, probably", passing beside the text, never through it
+    const hero = $('#hero'), svg = hero && $('.wander', hero), comp = hero && $('.compass', hero), hint = hero && $('.hint', hero);
+    if (!svg || !comp || !hint || !groves.length) return;
+    const hr = hero.getBoundingClientRect(), W = hr.width;
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - hr.left, r: r.right - hr.left, t: r.top - hr.top, b: r.bottom - hr.top, h: r.height, w: r.width }; };
+    const c = rel(comp), hi = rel(hint), X = v => clamp(v, 12, W - 12);
+    const cx = c.l + c.w / 2, top = c.b + 14, hy = hi.t + hi.h / 2;
+    const pts = [[cx, top], [X(cx + 8), top + (hy - top) * .45], [X(cx - 40), hy - 36], [hi.r + 24, hy]];
     let d = `M${f(pts[0][0])},${f(pts[0][1])}`;
     for (let i = 0; i < pts.length - 1; i++) {
       const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
       d += ` C${f(p1[0] + (p2[0] - p0[0]) / 6)},${f(p1[1] + (p2[1] - p0[1]) / 6)} ${f(p2[0] - (p3[0] - p1[0]) / 6)},${f(p2[1] - (p3[1] - p1[1]) / 6)} ${f(p2[0])},${f(p2[1])}`;
     }
     $$('path', svg).forEach(p => p.setAttribute('d', d));
-    const c = $('circle', svg); c.setAttribute('cx', f(pts[0][0])); c.setAttribute('cy', f(pts[0][1]));
+    const dot = $('circle', svg); dot.setAttribute('cx', f(pts[0][0])); dot.setAttribute('cy', f(pts[0][1]));
   }
 
   function layoutAll() { mobile = mq.matches; groves.forEach(layout); layoutHero(); }

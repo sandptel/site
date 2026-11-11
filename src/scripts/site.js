@@ -167,6 +167,7 @@ if (hb && hero) {
     w.addEventListener('mouseenter', () => cur !== w && show(w));
     w.addEventListener('focus', () => show(w));
     w.addEventListener('click', () => show(cur === w ? null : w));
+    w.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(cur === w ? null : w); } });
     w.addEventListener('mouseleave', later);
     w.addEventListener('blur', later);
   });
@@ -231,3 +232,25 @@ addEventListener('keydown', e => {
   }
 });
 help?.addEventListener('click', e => { if (e.target === help) help.hidden = true; });
+
+/* ---------- the photo turns once: academic side → programming side ---------- */
+const me = $('.me-card');
+if (me) {
+  const btn = $('.flip', me), fa = $('.face-text.fa'), fb = $('.face-text.fb'), about = $('.about');
+  let touched = false, timer;
+  const set = face => {
+    if (me.dataset.face === face) return;
+    me.dataset.face = face; btn.setAttribute('aria-pressed', String(face === 'b'));
+    fa.inert = face !== 'a'; fb.inert = face !== 'b';
+    $('.hero-branch')?.classList.remove('on'); $$('.demo-tw.hot').forEach(b => b.classList.remove('hot'));
+  };
+  // never swap the text under someone who is reading or pointing at it
+  const busy = () => about.matches(':hover') || about.contains(document.activeElement);
+  const auto = () => { if (touched) return; if (busy()) { timer = setTimeout(auto, 1500); return; } set('b'); };
+  btn.addEventListener('click', () => { touched = true; clearTimeout(timer); set(me.dataset.face === 'a' ? 'b' : 'a'); });
+  if (!reduce()) {
+    timer = setTimeout(auto, 5200);
+    const first = () => { clearTimeout(timer); auto(); ['wheel', 'touchmove', 'scroll'].forEach(e => removeEventListener(e, first)); };
+    ['wheel', 'touchmove', 'scroll'].forEach(e => addEventListener(e, first, { passive: true }));
+  }
+}

@@ -19,29 +19,59 @@ const PLACES = [
   { seal: 'rkhall', name: 'RK Hall', meta: 'GSec Technology', note: '10 teams, GC gold twice', to: 'rkhall' },
 ];
 
-// LinkedIn has no Simple Icons mark, so a plain drawn one
-const LI = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.4 10.2v6.4M7.4 7.4v.1M11 16.6v-6.4M11 13c0-1.8 1-2.9 2.6-2.9s2.4 1 2.4 2.9v3.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-const MAIL = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+// hero terms: a dotted word that grows a small card (see .hero-branch below)
+// a span (not a <button>) so long terms wrap across lines like the prose around them; site.js gives it button keys
+const T = (id: string, text: string) => `<span class="tw demo-tw" role="button" tabindex="0" data-def="${id}" aria-describedby="hero-branch">${text}</span>`;
+const A = (href: string, text: string) => `<a href="${withBase(href)}">${text}</a>`;
+// the two faces of the bio: the photo shows the academic side, the GitHub avatar the programming side
+const FACE_A = [
+  `Hi, I'm <b class="me">Sandeep Patel</b>. I'm completing a five-year dual degree, B.Tech and M.Tech, at ${T('iitkgp', 'IIT Kharagpur')}, where most of my time outside class went to ${T('rkhall', 'Radhakrishnan Hall')}.`,
+  `In 2023–24 I was the hall's ${T('gsec', 'General Secretary of Technology')}, organising its teams across the inter-hall ${T('gc', 'Technology General Championship')}; RK Hall took gold twice during my years there. Earlier, I wrote technical articles for ${T('unstop', 'Unstop')} and spent a summer as a research intern at the ${T('coeamt', 'Centre of Excellence in Advanced Manufacturing')}.`,
+];
+const FACE_B = [
+  `Hi, I'm <b class="me">Sandeep Patel</b>. I build the parts of Linux you touch but rarely see: ${T('compositor', 'compositors')}, shells, and the ${T('daemon', 'daemons')} between them, mostly in Rust and reproducible with ${T('nix', 'Nix')}.`,
+  `Over two ${T('gsoc', 'Google Summers of Code')} with ${T('ccx', 'CCExtractor')} I brought the Regolith desktop to NixOS and then onto ${T('cosmic', 'COSMIC')}, and I worked on the shell of ${T('mecha', 'Mecha')}'s Comet handheld. These days I'm building ${T('wado', 'wado')}.`,
+];
+const TERMS: { id: string; seal?: string; title: string; body: string; href?: string }[] = [
+  { id: 'iitkgp', seal: 'iitkgp', title: 'IIT Kharagpur', body: 'The first of the Indian Institutes of Technology, founded in 1951. Dual degree, 2021 to 2026.', href: 'https://www.iitkgp.ac.in' },
+  { id: 'rkhall', seal: 'rkhall', title: 'Radhakrishnan Hall', body: 'One of the residential halls at IIT Kharagpur. Halls compete with each other all year, in sport, culture and technology.', href: 'https://www.rkhall.in' },
+  { id: 'gsec', seal: 'rkhall', title: 'General Secretary, Technology', body: 'The elected student who runs a hall\'s technology events for the year: choosing captains, building teams, managing the budget.' },
+  { id: 'gc', title: 'General Championship', body: 'IIT Kharagpur\'s year-long contest between halls. Technology is one of its tracks, with events from quizzes to hardware modelling.' },
+  { id: 'unstop', title: 'Unstop', body: 'A platform for student competitions and hiring. Technical writing internship, May to July 2023.', href: 'https://unstop.com' },
+  { id: 'coeamt', seal: 'iitkgp', title: 'CoE, Advanced Manufacturing', body: 'IIT Kharagpur\'s Centre of Excellence in Advanced Manufacturing Technology. Research internship, 2023.', href: 'https://coeamt.iitkgp.ac.in' },
+  { id: 'compositor', title: 'compositor', body: 'The program that draws every window and routes your input to it. On Wayland, it is the display server.' },
+  { id: 'daemon', title: 'daemon', body: 'A program with no window. It starts with your session, listens, and acts when something changes.' },
+  { id: 'nix', seal: 'nixos', title: 'Nix', body: 'A package manager and build language whose builds come out the same on every machine. NixOS is a whole system declared in it.', href: 'https://nixos.org' },
+  { id: 'gsoc', seal: 'gsoc', title: 'Google Summer of Code', body: 'Google\'s programme that pairs students with open-source organisations for a summer of paid work. 2024 and 2025.', href: 'https://summerofcode.withgoogle.com' },
+  { id: 'ccx', seal: 'ccx', title: 'CCExtractor', body: 'An open-source organisation, best known for subtitle extraction, that mentors GSoC projects across many codebases.', href: 'https://ccextractor.org' },
+  { id: 'cosmic', seal: 'popos', title: 'COSMIC', body: 'System76\'s new desktop environment, written in Rust.', href: 'https://system76.com/cosmic' },
+  { id: 'mecha', seal: 'mecha', title: 'Mecha', body: 'The team behind the Comet, an open and modular Linux handheld. I worked on its shell, Jul 2025 to Jan 2026.', href: 'https://mecha.so' },
+  { id: 'wado', seal: 'wayland', title: 'wado', body: 'A headless Wayland compositor that streams its display to a browser over WebRTC.', href: 'https://github.com/sandptel/wado' },
+];
+
 ---
 <Base>
   <section class="hero wrap" id="hero">
     <svg class="wander" aria-hidden="true"><path class="w-main" pathLength="1" /><circle r="2.6" cx="-10" cy="-10" /></svg>
-    <div>
-      <p class="chips mono rise" style="--d:0">
-        {[['rust', 'Rust'], ['nixos', 'Nix / NixOS'], ['wayland', 'Wayland'], ['linux', 'Linux desktop']].map(([n, t]) => <span><Fragment set:html={icon(n)} />{t}</span>)}
-      </p>
-      <h1 class="name" aria-label="Sandeep Patel"><span class="l rise" style="--d:1">Sandeep</span><span class="l l2 rise" style="--d:2">Patel</span></h1>
-      <p class="bio rise" style="--d:3" aria-label="Can't perceive directions"><span class="w1">Can't</span> <span class="w2">perceive</span> <span class="w3" id="bio-end">directions</span></p>
-      <p class="intro rise" style="--d:4">
-        I build the parts of Linux you touch but rarely see: <button class="tw demo-tw" type="button" data-def="compositor" aria-describedby="hero-branch">compositors</button>, shells, and the <button class="tw demo-tw" type="button" data-def="daemon" aria-describedby="hero-branch">daemons</button> between them, in Rust, reproducible with <button class="tw demo-tw" type="button" data-def="nix" aria-describedby="hero-branch">Nix</button>.
-      </p>
-      <p class="creds mono rise" style="--d:5"><span>2× Google Summer of Code</span><span>the shell of Mecha's Comet handheld</span><span>dual degree, IIT Kharagpur</span></p>
-      <ul class="reach rise" style="--d:6" aria-label="Elsewhere">
-        <li><a href={GITHUB}><Fragment set:html={icon('github')} /><span>github.com/<b>sandptel</b></span><i aria-hidden="true">↗</i></a></li>
-        <li><a href={LINKEDIN}><Fragment set:html={LI} /><span>linkedin.com/in/<b>sandptel</b></span><i aria-hidden="true">↗</i></a></li>
-        <li><button type="button" class="copy" data-copy={EMAIL}><Fragment set:html={MAIL} /><span>{EMAIL}</span><i aria-hidden="true">copy</i></button></li>
-      </ul>
-      <a class="now mono rise" style="--d:7" href="https://github.com/sandptel/wado">
+    <h1 class="sr">Sandeep Patel</h1>
+    <div class="about-wrap">
+      <div class="about rise" style="--d:0">
+        <figure class="me-card" data-face="a">
+          <button class="flip" type="button" aria-pressed="false" aria-label="Turn the photo: academic side or programming side">
+            <span class="flip-in">
+              <span class="face front"><img src={withBase('/me/linkedin.jpg')} alt="Sandeep Patel" width="400" height="400" /></span>
+              <span class="face back"><img src={withBase('/me/github.jpg')} alt="Roronoa Zoro, Sandeep's GitHub avatar" width="400" height="400" /></span>
+            </span>
+          </button>
+          <figcaption class="mono"><span class="cap-a"><Fragment set:html={seal('iitkgp')} />IIT Kharagpur</span><span class="cap-b"><Fragment set:html={icon('github')} />sandptel</span></figcaption>
+        </figure>
+        <div class="faces">
+          <div class="face-text fa">{FACE_A.map(p => <p set:html={p} />)}</div>
+          <div class="face-text fb" inert>{FACE_B.map(p => <p set:html={p} />)}</div>
+        </div>
+      </div>
+      <p class="about-more rise" style="--d:2">I occasionally <Fragment set:html={A('/writing', 'write at length')} /> about what I build, and the <a href="#journey">journey below</a> has the details. You can find me on <a href={GITHUB}>GitHub</a> and <a href={LINKEDIN}>LinkedIn</a>, or write to <button type="button" class="copy inline" data-copy={EMAIL}><span>{EMAIL}</span><i aria-hidden="true">copy</i></button>.</p>
+      <a class="now mono rise" style="--d:3" href="https://github.com/sandptel/wado">
         <span class="now-row"><span class="live" aria-hidden="true"></span><span class="now-t">now · <b>building wado</b>, a headless Wayland compositor that streams over WebRTC</span></span>
         <span class="now-x"><span class="now-in"><span class="gh"><Fragment set:html={icon('github')} /><span>github.com/sandptel/<b>wado</b></span></span><span class="tags"><i>Rust</i><i>Smithay</i><i>VA-API</i><i>pre-alpha</i></span><i class="now-arr" aria-hidden="true">↗</i></span></span>
       </a>
@@ -49,9 +79,12 @@ const MAIL = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2
       <a class="hint mono" href="#journey"><svg viewBox="0 0 16 26" aria-hidden="true"><path d="M8 1 C 4 8, 12 12, 8 24 M3 19 L8 24 L13 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg><span class="hint-t">this way, probably</span></a>
       <div class="hero-branch" id="hero-branch" role="tooltip">
         <svg class="hb-line" aria-hidden="true"><path pathLength="1" /></svg>
-        <div class="card t-define" data-for="compositor"><p class="ctype"><span class="g"></span>define</p><h3>compositor<em>n.</em></h3><p>The program that draws every window and routes your input to it. On Wayland, it is the display server.</p></div>
-        <div class="card t-define" data-for="daemon"><p class="ctype"><span class="g"></span>define</p><h3>daemon<em>n.</em></h3><p>A program with no window. It starts with your session, listens, and acts when something changes.</p></div>
-        <div class="card t-define" data-for="nix"><p class="ctype"><span class="g"></span>define</p><h3>Nix<em>n.</em></h3><p>A package manager and build language whose builds come out the same on every machine. NixOS is a whole system declared in it.</p></div>
+        {TERMS.map(t => (
+          <div class="card t-define" data-for={t.id} hidden>
+            <header class="hb-h">{t.seal && <Fragment set:html={seal(t.seal)} />}<div><p class="ctype"><span class="g"></span>{t.seal ? 'about' : 'define'}</p><h3>{t.href ? <a class="h-link" href={t.href}>{t.title}<span class="arr" aria-hidden="true">↗</span></a> : t.title}</h3></div></header>
+            <p>{t.body}</p>
+          </div>
+        ))}
       </div>
     </div>
     <a class="compass rise" style="--d:4" href="#journey" aria-label="Jump to the journey">
