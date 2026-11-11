@@ -134,6 +134,7 @@
   });
 
   exTotal = groves.reduce((n, G) => n + G.top.filter(b => b.kind === 'word' || b.card.classList.contains('t-project')).length + G.subs.length, 0);
+  exTotal += $$('.demo-tw').length; // the bio's own branches count too
   exUpdate(false);
   if (ALL) groves.forEach(G => G.subs.forEach(s => s.set(true)));
 

@@ -18,7 +18,6 @@ const body = weave(post.rendered?.html ?? '', post.data.branches);
       <p class="kicker">writing</p>
       <h1>{post.data.title}</h1>
       <p class="dateline mono">{post.data.dateline ?? post.data.date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
-      <p class="howto">Words like <span class="demo">this</span> grow branches as you scroll. Tap one to hold it open; words inside a branch open branches of their own.</p>
     </header>
     <div class="col body" set:html={body} />
     <footer class="col post-foot mono">

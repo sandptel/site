@@ -53,7 +53,7 @@ def roles(p):
     fg, _ = fit(p['base05'], extreme, [bg, panel], 7)
     # base02 is a selection colour; in Solarized it is mid-grey, so code wells
     # and rules are derived from bg/fg instead of trusting it
-    sunk = mix(panel, fg, .06)
+    sunk = mix(panel, fg, .06 if dark else .045)
     grounds = [bg, panel, sunk]
     r, fixed = {}, []
     def role(name, slot, floor, toward=extreme, on=grounds):  # black/white keeps the hue; fg would grey it
@@ -62,8 +62,8 @@ def roles(p):
         r[name] = c
     r.update(bg=bg, panel=panel, sunk=sunk, fg=fg)
     role('muted', 'base04', 4.5)
-    role('faint', 'base03', 1.9, on=[bg])          # trunks, ticks: graphics only
-    r['rule'], _ = fit(mix(bg, fg, .12), fg, [bg], 1.3)
+    role('faint', 'base03', 1.9 if dark else 2.3, on=[bg])  # trunks, ticks: graphics only; light paper needs a firmer line
+    r['rule'], _ = fit(mix(bg, fg, .12 if dark else .15), fg, [bg, panel], 1.3 if dark else 1.4)
     for name, slot in [('accent', 'base0D'), ('nest', 'base0E'), ('live', 'base0B'), ('warn', 'base0A'),
                        ('danger', 'base08'), ('ember', 'base09'), ('cyan', 'base0C')]:
         role(name, slot, 4.5)

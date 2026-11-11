@@ -19,7 +19,7 @@ if (theme) {
     $('.nm', schemeBtn).textContent = cur.dataset.label;
     const sw = JSON.parse(cur.dataset[dark() ? 'dark' : 'light']);
     $('.wheel', schemeBtn).style.background = `conic-gradient(${sw[3]} 0 25%, ${sw[4]} 0 50%, ${sw[5]} 0 75%, ${sw[6]} 0)`;
-    const pref = root.dataset.pref || 'auto';
+    const pref = root.dataset.pref || 'light';
     segs.forEach((b, i) => { const on = b.dataset.m === pref; b.setAttribute('aria-checked', String(on)); if (on) segInd.style.transform = `translateX(${i * 100}%)`; });
   };
   // repaint inside a view transition, revealed as a circle from the click (kept as it was)
@@ -40,7 +40,7 @@ if (theme) {
   };
   modeBtn.addEventListener('click', () => setPref(dark() ? 'light' : 'dark', $('.knob', modeBtn)));
   segs.forEach(b => b.addEventListener('click', () => setPref(b.dataset.m, b)));
-  osDark.addEventListener('change', () => { if ((root.dataset.pref || 'auto') === 'auto') setPref('auto', modeBtn); });
+  osDark.addEventListener('change', () => { if (root.dataset.pref === 'auto') setPref('auto', modeBtn); });
 
   const open = on => {
     panel.hidden = !on; theme.classList.toggle('open', on); schemeBtn.setAttribute('aria-expanded', String(on));
@@ -141,31 +141,38 @@ function notice(html, ms = 5200) {
 }
 document.addEventListener('explored:all', () => notice('<b>Every branch on this page, opened.</b> Thank you for reading closely.'));
 
-/* ---------- hero: the word "branch" demonstrates itself once, then on hover ---------- */
-const demo = $('.demo-tw'), hb = $('.hero-branch'), hero = $('#hero');
-if (demo && hb && hero) {
-  const place = () => {
-    const h = hero.getBoundingClientRect(), w = demo.getBoundingClientRect();
-    const x = w.left - h.left, y = w.bottom - h.top;
-    const left = Math.max(0, Math.min(x - 40, h.width - 320));
-    hb.style.left = left + 'px'; hb.style.top = (y + 26) + 'px';
-    const svg = $('.hb-line', hb), ax = x + w.width / 2 - left;
+/* ---------- hero: a few words in the bio grow their definitions ---------- */
+const hb = $('.hero-branch'), hero = $('#hero');
+if (hb && hero) {
+  let cur = null, hideT;
+  const place = w => {
+    const h = hero.getBoundingClientRect(), r = w.getBoundingClientRect();
+    const x = r.left - h.left, left = Math.max(0, Math.min(x - 40, h.width - 320));
+    hb.style.left = left + 'px'; hb.style.top = (r.bottom - h.top + 26) + 'px';
+    const svg = $('.hb-line', hb), ax = x + r.width / 2 - left;
     svg.setAttribute('width', Math.max(ax, 60) + 20); svg.setAttribute('height', 28);
-    $('path', svg).setAttribute('d', `M${ax},-22 V2`);
+    $('path', svg).setAttribute('d', `M${ax},-17 V2`);
   };
-  let hideT;
-  const show = on => { clearTimeout(hideT); if (on) place(); hb.classList.toggle('on', on); demo.classList.toggle('hot', on); demo.setAttribute('aria-expanded', String(on)); };
-  demo.addEventListener('mouseenter', () => show(true));
-  demo.addEventListener('focus', () => show(true));
-  demo.addEventListener('click', () => { show(!hb.classList.contains('on')); window.__branches?.mark('b:hero-branch'); });
-  [demo, hb].forEach(el => el.addEventListener('mouseleave', () => { hideT = setTimeout(() => show(false), 500); }));
+  const show = w => {
+    clearTimeout(hideT);
+    $$('.demo-tw').forEach(b => { b.classList.toggle('hot', b === w); b.setAttribute('aria-expanded', String(b === w)); });
+    if (!w) { hb.classList.remove('on'); cur = null; return; }
+    $$('.card', hb).forEach(c => c.hidden = c.dataset.for !== w.dataset.def);
+    place(w); cur = w;
+    hb.classList.remove('on'); void hb.offsetWidth; hb.classList.add('on');
+    window.__branches?.mark('hero:' + w.dataset.def);
+  };
+  const later = () => { hideT = setTimeout(() => show(null), 450); };
+  $$('.demo-tw').forEach(w => {
+    w.addEventListener('mouseenter', () => cur !== w && show(w));
+    w.addEventListener('focus', () => show(w));
+    w.addEventListener('click', () => show(cur === w ? null : w));
+    w.addEventListener('mouseleave', later);
+    w.addEventListener('blur', later);
+  });
   hb.addEventListener('mouseenter', () => clearTimeout(hideT));
-  demo.addEventListener('blur', () => show(false));
-  addEventListener('resize', () => hb.classList.contains('on') && place());
-  // once, early: show what a branch is, then fold it away
-  let touched = false;
-  ['pointerdown', 'wheel', 'keydown', 'touchstart'].forEach(e => addEventListener(e, () => touched = true, { once: true, passive: true }));
-  if (!reduce()) setTimeout(() => { if (!touched && scrollY < 80) { show(true); setTimeout(() => { if (!demo.matches(':hover') && document.activeElement !== demo) show(false); }, 3600); } }, 1900);
+  hb.addEventListener('mouseleave', later);
+  addEventListener('resize', () => cur && place(cur));
 }
 
 /* ---------- hero compass: point at the reader ---------- */

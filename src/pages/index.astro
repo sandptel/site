@@ -33,19 +33,25 @@ const MAIL = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2
       <h1 class="name" aria-label="Sandeep Patel"><span class="l rise" style="--d:1">Sandeep</span><span class="l l2 rise" style="--d:2">Patel</span></h1>
       <p class="bio rise" style="--d:3" aria-label="Can't perceive directions"><span class="w1">Can't</span> <span class="w2">perceive</span> <span class="w3" id="bio-end">directions</span></p>
       <p class="intro rise" style="--d:4">
-        Systems engineer in <b>Rust</b>, <b>Nix</b> and <b>Wayland</b>. Two Google Summers of Code with CCExtractor, a stint building the shell for Mecha's Comet handheld, and a dual degree from IIT Kharagpur. Words on this site <button class="tw demo-tw" type="button" aria-describedby="hero-branch">branch</button> as you read.
+        I build the parts of Linux you touch but rarely see: <button class="tw demo-tw" type="button" data-def="compositor" aria-describedby="hero-branch">compositors</button>, shells, and the <button class="tw demo-tw" type="button" data-def="daemon" aria-describedby="hero-branch">daemons</button> between them, in Rust, reproducible with <button class="tw demo-tw" type="button" data-def="nix" aria-describedby="hero-branch">Nix</button>.
       </p>
-      <ul class="reach rise" style="--d:5" aria-label="Elsewhere">
+      <p class="creds mono rise" style="--d:5"><span>2× Google Summer of Code</span><span>the shell of Mecha's Comet handheld</span><span>dual degree, IIT Kharagpur</span></p>
+      <ul class="reach rise" style="--d:6" aria-label="Elsewhere">
         <li><a href={GITHUB}><Fragment set:html={icon('github')} /><span>github.com/<b>sandptel</b></span><i aria-hidden="true">↗</i></a></li>
         <li><a href={LINKEDIN}><Fragment set:html={LI} /><span>linkedin.com/in/<b>sandptel</b></span><i aria-hidden="true">↗</i></a></li>
         <li><button type="button" class="copy" data-copy={EMAIL}><Fragment set:html={MAIL} /><span>{EMAIL}</span><i aria-hidden="true">copy</i></button></li>
       </ul>
-      <a class="now mono rise" style="--d:6" href="#stop-wado"><span class="live" aria-hidden="true"></span><span>now · <b>building wado</b>, a headless Wayland compositor that streams over WebRTC</span></a>
+      <a class="now mono rise" style="--d:7" href="https://github.com/sandptel/wado">
+        <span class="now-row"><span class="live" aria-hidden="true"></span><span class="now-t">now · <b>building wado</b>, a headless Wayland compositor that streams over WebRTC</span></span>
+        <span class="now-x"><span class="now-in"><span class="gh"><Fragment set:html={icon('github')} /><span>github.com/sandptel/<b>wado</b></span></span><span class="tags"><i>Rust</i><i>Smithay</i><i>VA-API</i><i>pre-alpha</i></span><i class="now-arr" aria-hidden="true">↗</i></span></span>
+      </a>
       <br />
       <a class="hint mono" href="#journey"><svg viewBox="0 0 16 26" aria-hidden="true"><path d="M8 1 C 4 8, 12 12, 8 24 M3 19 L8 24 L13 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" /></svg><span class="hint-t">this way, probably</span></a>
       <div class="hero-branch" id="hero-branch" role="tooltip">
         <svg class="hb-line" aria-hidden="true"><path pathLength="1" /></svg>
-        <div class="card t-define"><p class="ctype"><span class="g"></span>define · like this</p><h3>branch<em>v.</em></h3><p>Any dotted word grows an explanation as you scroll past it. Hover or tap to hold one open; some explanations branch again.</p></div>
+        <div class="card t-define" data-for="compositor"><p class="ctype"><span class="g"></span>define</p><h3>compositor<em>n.</em></h3><p>The program that draws every window and routes your input to it. On Wayland, it is the display server.</p></div>
+        <div class="card t-define" data-for="daemon"><p class="ctype"><span class="g"></span>define</p><h3>daemon<em>n.</em></h3><p>A program with no window. It starts with your session, listens, and acts when something changes.</p></div>
+        <div class="card t-define" data-for="nix"><p class="ctype"><span class="g"></span>define</p><h3>Nix<em>n.</em></h3><p>A package manager and build language whose builds come out the same on every machine. NixOS is a whole system declared in it.</p></div>
       </div>
     </div>
     <a class="compass rise" style="--d:4" href="#journey" aria-label="Jump to the journey">
@@ -66,7 +72,7 @@ const MAIL = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2
     <header class="jhead" data-nr data-name="Journey" data-desc={`2021 → now, ${JOURNEY.length} stops on one trunk`}>
       <p class="kicker">journey</p>
       <h2 id="journey-h">2021 → now</h2>
-      <p class="mono">one trunk, many branches · tap a node to hold it open</p>
+      <p class="mono">one trunk, many branches</p>
       <ul class="niches" aria-label="Filter by niche">
         {(Object.keys(NICHES) as Niche[]).map(k => (
           <li>
@@ -102,7 +108,7 @@ const MAIL = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="2
   </section>
   <section class="places wrap" id="places" aria-labelledby="places-h" data-nr data-name="Places" data-desc="Every organisation on the tree, in one wall">
     <h2 id="places-h">Places the tree passed through</h2>
-    <p>Everywhere above, in one place. Hover for the short version; click to jump back to its branch.</p>
+    <p>Everywhere above, in one wall.</p>
     <ul class="wall">
       {PLACES.map((p, i) => (
         <li style={`--i:${i}`}>

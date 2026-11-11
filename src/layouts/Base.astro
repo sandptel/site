@@ -30,8 +30,9 @@ const current = (href: string) => (href !== '/#journey' && here.startsWith(href)
       (() => {
         const r = document.documentElement; r.classList.add('js');
         let m, s; try { m = localStorage.getItem('mode'); s = localStorage.getItem('scheme'); } catch {}
-        r.dataset.pref = m || 'auto';
-        r.dataset.mode = m && m !== 'auto' ? m : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        // light is the house default; Auto (follow the OS) and Dark are a choice away
+        r.dataset.pref = m || 'light';
+        r.dataset.mode = m === 'dark' || (m === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
         r.dataset.scheme = s || 'marginalia';
         if (/[?&]all|#all/.test(location.search + location.hash)) r.classList.add('all');
       })();
