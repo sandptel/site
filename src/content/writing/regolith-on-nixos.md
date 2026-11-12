@@ -2,7 +2,7 @@
 title: Packaging Regolith for NixOS
 date: 2024-09-01
 summary: My first Google Summer of Code. Fifteen Regolith packages as Nix derivations, and a session that boots from a flake.
-dateline: GSoC 2024 · CCExtractor
+dateline: GSoC 2024 · CCExtractor · mentor Soumya Ranjan Patnaik
 repo: https://github.com/sandptel/gsoc24
 marks: [regolith, nixos]
 branches:

@@ -107,7 +107,7 @@ branches:
 
 [Regolith](#b:regolith) pairs a tiling window manager, Sway or i3, with parts of GNOME for settings and system management. It works, but the GNOME half brings [Mutter](#b:mutter) and its own [Wayland](#b:wayland) protocols along, and those don't sit well with [wlroots](#b:wlroots) compositors like Sway.
 
-[COSMIC](#b:cosmic), System76's desktop written in Rust, is built from small separate pieces. So for my second GSoC, again with CCExtractor, the plan was to swap Regolith's GNOME parts for COSMIC ones and keep everything else.
+[COSMIC](#b:cosmic), System76's desktop written in Rust, is built from small separate pieces. So for my second GSoC, again with CCExtractor and again mentored by Soumya, the plan was to swap Regolith's GNOME parts for COSMIC ones and keep everything else.
 
 The biggest piece was settings. Regolith ran `gnome-control-center` plus three small daemons for input, display and power. I forked cosmic-settings to [replace all four](#b:swap). Here are [the old one and the new one](#b:compare) side by side.
 
