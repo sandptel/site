@@ -167,6 +167,19 @@ const FIGS: Record<string, () => string> = {
     <code class="out">/nix/store/<b>q8n1w2…</b>-ilia</code>
   </div>`,
 
+  // the fifteen packages, by kind; each row slides in once
+  pkgs: () => {
+    const rows: [string, string, 'app' | 'lib' | 'cfg'][] = [
+      ['regolith-session', 'starts the desktop', 'app'], ['sway-regolith', 'Regolith\'s build of Sway', 'app'], ['ilia', 'app launcher', 'app'],
+      ['rofication', 'notifications', 'app'], ['remontoire', 'keybinding viewer', 'app'], ['i3xrocks', 'status bar blocks', 'app'],
+      ['trawld', 'settings daemon', 'app'], ['libtrawldb', 'its database library', 'lib'], ['xrescat', 'reads one setting', 'app'],
+      ['regolith-inputd', 'input settings → Sway', 'app'], ['regolith-displayd', 'display settings → Sway', 'app'], ['regolith-powerd', 'power settings → Sway', 'app'],
+      ['regolith-wm-config', 'the Sway/i3 config', 'cfg'], ['regolith-sway-root-config', 'the root config', 'cfg'], ['regolith-look-default', 'the default look', 'cfg'],
+    ];
+    return `<ul class="fig fig-pkgs">${rows.map(([n, d, k], i) => `<li class="${k}" style="--i:${i}"><b>${n}</b><span>${d}</span></li>`).join('')}</ul>
+    <p class="fig-key mono"><i class="app"></i>program <i class="lib"></i>library <i class="cfg"></i>config only</p>`;
+  },
+
   // the typical fix: a Debian path rewritten to point into the store
   fhs: () => `<pre class="fig fig-diff" role="img" aria-label="A line that runs /usr/bin/sway is rewritten to run sway from its own path in the Nix store"><span class="d0">  # regolith-session</span>
 <span class="dm">- exec /usr/bin/sway</span>
@@ -225,6 +238,12 @@ input type:keyboard {
   replaced: () => {
     const pairs = [['swaybg', 'cosmic-bg'], ['swayidle', 'cosmic-idle'], ['nautilus', 'cosmic-files'], ['gnome-session-quit', 'systemctl · loginctl'], ['xdg-desktop-portal', '…-portal-cosmic']];
     return `<ul class="fig fig-pairs" role="img" aria-label="${pairs.map(([a, b]) => `${a} replaced by ${b}`).join(', ')}">${pairs.map(([a, b], i) => `<li style="--i:${i}"><s>${a}</s><i aria-hidden="true"></i><b>${b}</b></li>`).join('')}</ul>`;
+  },
+
+  // the optional, all-COSMIC flavour: Regolith's pieces next to the COSMIC ones that could stand in
+  fullcosmic: () => {
+    const pairs = [['ilia', 'cosmic-launcher'], ['swaybar', 'cosmic-panel'], ['—', 'cosmic-dock'], ['—', 'cosmic-applets']];
+    return `<ul class="fig fig-pairs opt" role="img" aria-label="${pairs.map(([a, b]) => a === '—' ? `add ${b}` : `${a} or ${b}`).join(', ')}">${pairs.map(([a, b], i) => `<li style="--i:${i}"><s>${a}</s><i aria-hidden="true"></i><b>${b}</b></li>`).join('')}</ul>`;
   },
 
   // where it stood at the end of the summer, honestly

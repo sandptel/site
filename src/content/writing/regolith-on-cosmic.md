@@ -93,23 +93,36 @@ branches:
       - { label: cosmic-session }
       - { label: sway, note: starts the rest }
     cmd: exec dbus-run-session -- cosmic-session sway -c "$SWAY_CONFIG_FILE"
+  session-def:
+    type: define
+    title: cosmic-session
+    body: COSMIC's session starter. It brings up COSMIC's background services, like the settings daemon and notifications, and then the compositor it's handed, here Sway.
+  portal:
+    type: define
+    title: desktop portal
+    body: "`xdg-desktop-portal`: the service apps go through for file pickers, screenshots and screen sharing on Wayland. Each desktop ships its own backend."
+  obs:
+    type: define
+    title: OpenSUSE Build Service
+    body: A public build farm that builds packages for many distros, Debian included. The COSMIC packages used here come from a community repo on it.
+  just:
+    type: define
+    title: just
+    link: https://github.com/casey/just
+    body: A command runner, like `make` without the build rules. cosmic-settings uses it to build and install.
+  full-cosmic:
+    type: figure
+    figure: fullcosmic
+    body: Optional, per user. Regolith's own pieces stay the default.
   checklist:
     type: figure
     figure: checklist
     body: As it stood in the final report.
-  mood-moving:
-    type: mood
-    tone: hard
-    body: building on something that kept moving.
   fanout:
     type: figure
     figure: fanout
     wide: true
     body: One event, many dialects. cosmolith speaks each compositor's IPC.
-  mood-clicked:
-    type: mood
-    tone: good
-    body: same idea, better timing.
 ---
 
 ## Why move off GNOME
@@ -143,9 +156,9 @@ For one compositor, the files won. Here it is [working](#b:demo): change the key
 
 ## The rest of the session
 
-Settings weren't the only GNOME parts. The rest of the session [moved over](#b:replaced) the same way, one component at a time: `swaybg` became `cosmic-bg` (which follows the wallpaper set in the settings app), `swayidle` became `cosmic-idle`, Nautilus became COSMIC Files, the desktop portal became COSMIC's, and logging out goes through `systemctl` and `loginctl` instead of `gnome-session-quit`.
+Settings weren't the only GNOME parts. The rest of the session [moved over](#b:replaced) the same way, one component at a time: `swaybg` became `cosmic-bg` (which follows the wallpaper set in the settings app), `swayidle` became `cosmic-idle`, Nautilus became COSMIC Files, the [desktop portal](#b:portal) became COSMIC's, and logging out goes through `systemctl` and `loginctl` instead of `gnome-session-quit`.
 
-The [session script](#b:session) needed only one real change. Instead of starting Sway directly, it starts `cosmic-session`, which brings up COSMIC's services and then Sway with Regolith's config. Everything else still starts from that config, as before.
+The [session script](#b:session) needed only one real change. Instead of starting Sway directly, it starts [cosmic-session](#b:session-def), which brings up COSMIC's services and then Sway with Regolith's config. Everything else still starts from that config, as before.
 
 ```sh
 exec /usr/bin/dbus-run-session -- cosmic-session sway -c "$SWAY_CONFIG_FILE"
@@ -155,7 +168,7 @@ Across the summer that came to eight session apps reworked and roughly 40% less 
 
 ## Trying it
 
-Getting there on Ubuntu or Debian takes four steps:
+Getting there on Ubuntu or Debian takes four steps. The COSMIC packages come from the [OpenSUSE Build Service](#b:obs), and the fork builds with [just](#b:just):
 
 1. Add the COSMIC packages from the OpenSUSE Build Service, which has Debian builds.
 2. Install the COSMIC components, all except `cosmic-settings`.
@@ -172,9 +185,9 @@ The [report](https://github.com/sandptel/gsoc25) has the exact commands.
 
 ## Where it stands
 
-It isn't finished. COSMIC itself wasn't stable yet, so I'd call this a working beta. Display, input, power and appearance work, shortcuts are partial, workspaces are still on the list, and I've only tested on Ubuntu. [Here's where it stood](#b:checklist). [~](#b:mood-moving)
+It isn't finished. COSMIC itself wasn't stable yet, so I'd call this a working beta. Display, input, power and appearance work, shortcuts are partial, workspaces are still on the list, and I've only tested on Ubuntu. [Here's where it stood](#b:checklist).
 
-The next steps are the missing pages (workspaces, keyboard shortcuts, and Regolith's own pages for startup apps, window rules and default apps), testing on Debian, and a beta release. There's also an optional, more COSMIC version to try, with COSMIC's launcher, panel, dock and applets in place of Regolith's.
+The next steps are the missing pages (workspaces, keyboard shortcuts, and Regolith's own pages for startup apps, window rules and default apps), testing on Debian, and a beta release. There's also an [optional, more COSMIC version](#b:full-cosmic) to try, with COSMIC's launcher, panel, dock and applets in place of Regolith's.
 
 I also sent two small fixes upstream, to [cosmic-settings](https://github.com/pop-os/cosmic-settings/pull/1227) and [cosmic-applets](https://github.com/pop-os/cosmic-applets/pull/948).
 
@@ -182,7 +195,7 @@ I also sent two small fixes upstream, to [cosmic-settings](https://github.com/po
 
 The daemon approach lost during GSoC, because for a single compositor a file Sway already reads is simpler than a process that has to stay alive.
 
-Once I wanted the same settings to work on Hyprland and niri too, a daemon was the right shape after all. That became [cosmolith](#b:fanout). [~](#b:mood-clicked)
+Once I wanted the same settings to work on Hyprland and niri too, a daemon was the right shape after all. That became [cosmolith](#b:fanout).
 
 ## Further reading
 

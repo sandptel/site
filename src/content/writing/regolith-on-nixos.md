@@ -46,10 +46,24 @@ branches:
         type: define
         title: FHS
         body: The Filesystem Hierarchy Standard, the usual Linux layout of `/usr/bin`, `/etc` and so on.
-  mood-paths:
-    type: mood
-    tone: hard
-    body: grep -r /usr/bin, again.
+  pkgs:
+    type: figure
+    figure: pkgs
+    wide: true
+    body: The fifteen, and what each one does.
+  current:
+    type: define
+    title: /run/current-system/sw
+    body: Where NixOS links every package your config asks for, so `$PATH` has one place to look. Each entry is a link into `/nix/store`.
+  flake:
+    type: define
+    seal: nixos
+    title: flake
+    body: A `flake.nix` at the root of a repo. It pins every input to an exact version and exposes outputs, like packages, NixOS modules and dev shells, that others can use by URL.
+  cache:
+    type: define
+    title: binary cache
+    body: A server that holds store paths someone already built. Nix downloads from it instead of compiling, as long as the inputs match exactly.
   session:
     type: diagram
     title: boot
@@ -89,16 +103,16 @@ wayland.regolith.enable = true;
 
 Everything in Nix starts as a [derivation](#b:derivation): a recipe that says what to build, from which sources, with which dependencies, and how. Nix runs it in a sandbox that can only see what the recipe declares, which is why the result comes out the same on any machine.
 
-The output doesn't go to `/usr/bin`. It lands in its own folder in the Nix store, and NixOS links the packages you've asked for into `/run/current-system/sw`. Packaging something for NixOS mostly means writing that recipe, and making sure the program still finds everything once it lives at a path like that.
+The output doesn't go to `/usr/bin`. It lands in its own folder in the Nix store, and NixOS links the packages you've asked for into [`/run/current-system/sw`](#b:current). Packaging something for NixOS mostly means writing that recipe, and making sure the program still finds everything once it lives at a path like that.
 
 ## Fifteen packages
 
-By the end of the summer I had derivations for fifteen parts of Regolith. Ten of them are programs you can run, including the session itself, Regolith's Sway build, the [launcher](#b:ilia) and its input, display and power daemons:
+By the end of the summer I had derivations for [fifteen parts](#b:pkgs) of Regolith. Ten of them are programs you can run, including the session itself, Regolith's Sway build, the [launcher](#b:ilia) and its input, display and power daemons:
 
 - `regolith-session`, `sway-regolith`, `trawld`, `ilia`, `remontoire`
 - `i3xrocks`, `xrescat`, `regolith-displayd`, `regolith-inputd`, `regolith-powerd`
 
-The other five have no binary of their own. They are a library, the default look, and the configs that tie the session together:
+The other five don't come down to one program you run: a library, the default look, the configs that tie the session together, and the notification daemon, which ships several:
 
 - `libtrawldb`, `regolith-look-default`, `regolith-wm-config`
 - `regolith-sway-root-config`, `rofication`
@@ -107,7 +121,7 @@ The other five have no binary of their own. They are a library, the default look
 
 Regolith expects a [normal filesystem layout](#b:fhs). Its scripts call programs at `/usr/bin/…`, its configs sit in `/etc/regolith`, and pieces of it find each other by those fixed locations. On NixOS none of those paths exist.
 
-A lot of the summer went into finding those paths, one package at a time, and pointing them at the Nix store instead. Most fixes were a line or two each. Finding them was the slow part, because a missed path usually doesn't fail the build, it fails later when the session starts. [~](#b:mood-paths)
+A lot of the summer went into finding those paths, one package at a time, and pointing them at the Nix store instead. Most fixes were a line or two each. Finding them was the slow part, because a missed path usually doesn't fail the build, it fails later when the session starts.
 
 ## Trying it
 
@@ -125,7 +139,7 @@ inputs.regolith.nixosModules.regolith
 
 After a rebuild, `regolith-session-wayland` starts the desktop.
 
-Every package is also its own flake, so you can [try one by itself](#b:nixrun), on NixOS or on any other distro once Nix is installed. If you want all fifteen at once, `nix develop github:sandptel/regolith-nix` drops you into a shell that has them.
+Every package is also its own [flake](#b:flake), so you can [try one by itself](#b:nixrun), on NixOS or on any other distro once Nix is installed. If you want all fifteen at once, `nix develop github:sandptel/regolith-nix` drops you into a shell that has them.
 
 ## What I didn't finish
 
@@ -145,4 +159,4 @@ By the end of GSoC the packages and the session worked, but those options were s
 
 ## After GSoC
 
-That module is what the repo has grown into since. It moved to the regolith-lab organisation, picked up binary caching so nobody has to compile everything, got separate builds per app, and gained a VM to test the whole desktop in. I've [kept maintaining it](#b:after).
+That module is what the repo has grown into since. It moved to the regolith-lab organisation, picked up [binary caching](#b:cache) so nobody has to compile everything, got separate builds per app, and gained a VM to test the whole desktop in. I've [kept maintaining it](#b:after).
