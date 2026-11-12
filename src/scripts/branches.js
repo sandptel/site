@@ -361,8 +361,10 @@
   const SPRIG_SVG = '<svg viewBox="0 0 20 20"><path d="M10 18 C10 12, 8 9, 4 6 M10 13 C 11 9, 13 7, 16 5"/><circle cx="4" cy="6" r="1.6"/><circle cx="16" cy="5" r="1.6"/></svg>';
   const postTitle = ($('.post-head h1') || {}).textContent || '';
   const nrItems = $$('[data-nr]').map(el => ({ el, name: el.dataset.name, desc: el.dataset.desc || '', seal: ($('.node .seal', el) || {}).outerHTML || '' }));
+  // a post's paragraph reads as its section (the nearest heading above it), else the post's title
+  const section = p => { let e = p; while ((e = e.previousElementSibling)) if (e.tagName === 'H2') return e.textContent; return postTitle; };
   groves.filter(G => !G.journey && G.paras.length).forEach(G => G.paras.forEach((p, i) => nrItems.push({
-    el: p, name: postTitle, seal: '',
+    el: p, name: section(p), seal: '',
     desc: `¶ ${i + 1} of ${G.paras.length}` + ((w => w.length ? ' · ' + w.join(', ') : '')($$('.tw', p).map(b => b.textContent)))
   })));
   let nrNow = null, nrSwapAt = 0; const topBar = $('.top');

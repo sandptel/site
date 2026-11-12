@@ -30,6 +30,8 @@ const writing = defineCollection({
     summary: z.string().optional(),
     dateline: z.string().optional(),
     repo: z.string().url().optional(), // shown first, above the title
+    project: z.string().url().optional(), // the official GSoC project page, beside the repo
+    glance: z.array(z.tuple([z.string(), z.string()])).default([]), // at a glance: [label, inline markdown]
     marks: z.array(z.string()).default([]), // seals for the header, joined by a line: from → to
     draft: z.boolean().default(false),
     branches: z.record(z.string(), branch).default({}),

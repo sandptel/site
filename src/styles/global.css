@@ -795,6 +795,25 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .post-head .marks i::after { content: ""; position: absolute; right: -2px; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 .post-head .marks .seal:last-child { animation: wSeal .5s var(--ease-emph) 1.05s both; }
 @keyframes wSeal { from { opacity: 0; transform: scale(.85); } }
+/* the report and the official project page; then the facts, the contents, and section heads */
+.src-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; }
+.src-links .repo-top { margin: 0; }
+.glance { display: grid; gap: 6px; margin: 26px 0 0; padding: 14px 0 0; border-top: 1px solid var(--rule); }
+.glance div { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: baseline; }
+.glance dt { font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.glance dd { margin: 0; font-size: 16px; line-height: 1.45; }
+.toc { margin: 18px 0 0; padding: 14px 0 0; border-top: 1px solid var(--rule); }
+.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; counter-reset: toc; font-size: 12px; }
+.toc li { counter-increment: toc; }
+.toc li::before { content: counter(toc, decimal-leading-zero) " "; color: var(--faint); }
+.toc a { color: var(--fg); text-decoration: none; background: linear-gradient(var(--accent), var(--accent)) 0 100% / 0 1px no-repeat; transition: background-size var(--t2) var(--ease), color var(--t1) var(--ease); }
+.toc a:hover, .toc a:focus-visible { color: var(--accent); background-size: 100% 1px; }
+.post-head { padding-bottom: 44px; }
+.body { counter-reset: sec; }
+.body > h2 { counter-increment: sec; position: relative; margin: 2.4em 0 .7em; font: 400 26px/1.2 var(--f-term); scroll-margin-top: 90px; }
+.body > h2:first-child { margin-top: 0; }
+.body > h2::before { content: counter(sec, decimal-leading-zero); display: block; margin-bottom: 6px; font: 11px var(--f-mono); letter-spacing: .14em; color: var(--accent); }
+.entries .also { display: flex; gap: 16px; margin: -10px 0 16px 4px; font-size: 11.5px; }
 /* code blocks, coloured by the theme (only the post's own, not the figures' <pre>s inside cards) */
 .body > pre { --astro-code-foreground: var(--fg); --astro-code-background: var(--sunk); --astro-code-token-constant: var(--ember); --astro-code-token-string: var(--live); --astro-code-token-comment: var(--muted); --astro-code-token-keyword: var(--nest); --astro-code-token-parameter: var(--danger); --astro-code-token-function: var(--accent); --astro-code-token-string-expression: var(--live); --astro-code-token-punctuation: var(--muted); --astro-code-token-link: var(--cyan);
   margin: -.3em 0 1.6em; padding: 12px 16px; font: 14px/1.6 var(--f-mono); background: var(--sunk); border-left: 2px solid var(--accent); overflow-x: auto; }

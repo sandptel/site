@@ -12,7 +12,8 @@ const posts = (await getCollection('writing', ({ data }) => !data.draft))
     <p>So far, my two GSoC reports, rewritten to be easier to read. Dotted words open a short note.</p>
     <ul class="entries">
       {posts.map(p => (
-        <li><a class="row" href={withBase(`/writing/${p.id}`)}><span class="t">{p.data.title}</span><time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</time>{p.data.summary && <span class="s">{p.data.summary}</span>}</a></li>
+        <li><a class="row" href={withBase(`/writing/${p.id}`)}><span class="t">{p.data.title}</span><time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</time>{p.data.summary && <span class="s">{p.data.summary}</span>}</a>
+          {(p.data.project || p.data.repo) && <p class="also mono">{p.data.project && <a href={p.data.project}>GSoC project page ↗</a>}{p.data.repo && <a href={p.data.repo}>original report ↗</a>}</p>}</li>
       ))}
     </ul>
   </section>

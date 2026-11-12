@@ -2,8 +2,15 @@
 title: Packaging Regolith for NixOS
 date: 2024-09-01
 summary: My first Google Summer of Code. Fifteen Regolith packages as Nix derivations, and a session that boots from a flake.
-dateline: GSoC 2024 · CCExtractor · mentor Soumya Ranjan Patnaik
+dateline: Google Summer of Code · June to September 2024
 repo: https://github.com/sandptel/gsoc24
+project: https://summerofcode.withgoogle.com/programs/2024/projects/kWEY5sJj
+glance:
+  - [project, "[Create Nix derivations for Regolith Linux](https://summerofcode.withgoogle.com/programs/2024/projects/kWEY5sJj)"]
+  - [organisation, "[CCExtractor](https://ccextractor.org)"]
+  - [mentor, "[Soumya Ranjan Patnaik](https://github.com/SoumyaRanjanPatnaik)"]
+  - [outcome, "15 packages, a bootable Wayland session, per-app flakes"]
+  - [code, "[regolith-lab/regolith-nix](https://github.com/regolith-lab/regolith-nix)"]
 marks: [regolith, nixos]
 branches:
   regolith:
@@ -68,16 +75,34 @@ branches:
     body: Some of what came after, in regolith-nix and upstream in nixpkgs.
 ---
 
-My first Google Summer of Code, with CCExtractor, was about getting [Regolith](#b:regolith) onto [NixOS](#b:nixos). Regolith is a tiling desktop made for Ubuntu and Debian. NixOS describes the whole system in one config file. The goal was for someone on NixOS to get the full desktop with one option:
+## The goal
+
+My first Google Summer of Code, with CCExtractor, was about getting [Regolith](#b:regolith) onto [NixOS](#b:nixos). Regolith is a tiling desktop made for Ubuntu and Debian. NixOS describes the whole system in one config file.
+
+The goal was for someone on NixOS to get the full desktop with one option:
 
 ```nix
 wayland.regolith.enable = true;
 ```
 
-To get there, every piece of Regolith had to become a [derivation](#b:derivation). By the end of the summer I had fifteen of them: the session scripts, Regolith's Sway build, the [launcher](#b:ilia), the notification daemon, the input, display and power daemons, and a few packages that are only config files.
+## Fifteen packages
 
-Most of the friction came from paths. Regolith expects a [normal filesystem layout](#b:fhs), with binaries in `/usr/bin` and configs in `/etc/regolith`, and NixOS doesn't have one. A lot of the summer went into finding those paths and pointing them at the Nix store instead. [~](#b:mood-paths)
+To get there, every piece of Regolith had to become a [derivation](#b:derivation). By the end of the summer I had fifteen of them.
+
+They cover the session scripts, Regolith's Sway build, the [launcher](#b:ilia), the notification daemon, the input, display and power daemons, and a few packages that are only config files.
+
+## The hard part: paths
+
+Regolith expects a [normal filesystem layout](#b:fhs), with binaries in `/usr/bin` and configs in `/etc/regolith`. NixOS doesn't have one.
+
+A lot of the summer went into finding those paths and pointing them at the Nix store instead. [~](#b:mood-paths)
+
+## Where it ended up
 
 The Wayland session [boots](#b:session) from the flake. Every package is also its own flake, so you can [try one by itself](#b:nixrun), on NixOS or on any distro with Nix installed.
 
-What I didn't finish that summer was the [full module](#b:module), where every part (launcher, notifications, colour scheme, GDM) is an option you can swap. That's what the repo has grown into since. It moved to the regolith-lab organisation, and I've [kept maintaining it](#b:after).
+What I didn't finish that summer was the [full module](#b:module), where every part (launcher, notifications, colour scheme, GDM) is an option you can swap.
+
+## After GSoC
+
+That module is what the repo has grown into since. It moved to the regolith-lab organisation, and I've [kept maintaining it](#b:after).

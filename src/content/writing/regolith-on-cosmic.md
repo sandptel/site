@@ -2,8 +2,15 @@
 title: Swapping GNOME out of Regolith for COSMIC
 date: 2025-09-15
 summary: My second Google Summer of Code. Regolith's GNOME parts replaced with COSMIC ones, and a settings app that talks to Sway.
-dateline: GSoC 2025 · CCExtractor · mentor Soumya Ranjan Patnaik
+dateline: Google Summer of Code · June to September 2025
 repo: https://github.com/sandptel/gsoc25
+project: https://summerofcode.withgoogle.com/programs/2025/projects/mV0VlVwv
+glance:
+  - [project, "[Build a COSMIC based Wayland session for Regolith](https://summerofcode.withgoogle.com/programs/2025/projects/mV0VlVwv)"]
+  - [organisation, "[CCExtractor](https://ccextractor.org)"]
+  - [mentor, "[Soumya Ranjan Patnaik](https://github.com/SoumyaRanjanPatnaik)"]
+  - [outcome, "GNOME settings replaced by a cosmic-settings fork; session runs COSMIC beside Sway"]
+  - [code, "[cosmic-settings fork](https://github.com/sandptel/cosmic-settings) · [wm-config #56](https://github.com/regolith-linux/regolith-wm-config/pull/56) · [session #54](https://github.com/regolith-linux/regolith-session/pull/54)"]
 marks: [gnome, popos]
 branches:
   regolith:
@@ -105,20 +112,36 @@ branches:
     body: same idea, better timing.
 ---
 
+## Why move off GNOME
+
 [Regolith](#b:regolith) pairs a tiling window manager, Sway or i3, with parts of GNOME for settings and system management. It works, but the GNOME half brings [Mutter](#b:mutter) and its own [Wayland](#b:wayland) protocols along, and those don't sit well with [wlroots](#b:wlroots) compositors like Sway.
 
 [COSMIC](#b:cosmic), System76's desktop written in Rust, is built from small separate pieces. So for my second GSoC, again with CCExtractor and again mentored by Soumya, the plan was to swap Regolith's GNOME parts for COSMIC ones and keep everything else.
 
+## Settings
+
 The biggest piece was settings. Regolith ran `gnome-control-center` plus three small daemons for input, display and power. I forked cosmic-settings to [replace all four](#b:swap). Here are [the old one and the new one](#b:compare) side by side.
 
-I tried [two ways](#b:methods) of getting a change from the settings app into Sway. The one I kept sends each change to Sway over [IPC](#b:ipc), so it applies straight away, and also writes it to a [generated config](#b:genconf) file that Sway loads on start, so it survives a restart. If two settings clash, Sway reports it like any other config error.
+I tried [two ways](#b:methods) of getting a change from the settings app into Sway. The one I kept sends each change to Sway over [IPC](#b:ipc), so it applies straight away.
+
+It also writes the change to a [generated config](#b:genconf) file that Sway loads on start, so it survives a restart. If two settings clash, Sway reports it like any other config error.
 
 Here it is [working](#b:demo): change the key repeat delay and a new file shows up in that folder.
 
-The rest of the session [moved over](#b:replaced) the same way, one component at a time, and the [session script](#b:session) now starts `cosmic-session` next to Sway. Across the summer that came to eight session apps reworked and roughly 40% less pulled in at startup.
+## The rest of the session
+
+The rest of the session [moved over](#b:replaced) the same way, one component at a time, and the [session script](#b:session) now starts `cosmic-session` next to Sway.
+
+Across the summer that came to eight session apps reworked and roughly 40% less pulled in at startup.
+
+## Where it stands
 
 It isn't finished. COSMIC itself wasn't stable yet, so I'd call this a working beta. Display, input, power and appearance work, shortcuts are partial, workspaces are still on the list, and I've only tested on Ubuntu. [Here's where it stood](#b:checklist). [~](#b:mood-moving)
 
 I also sent two small fixes upstream, to [cosmic-settings](https://github.com/pop-os/cosmic-settings/pull/1227) and [cosmic-applets](https://github.com/pop-os/cosmic-applets/pull/948).
 
-One thing I like looking back: the daemon approach lost during GSoC, because for a single compositor a file Sway already reads is simpler than a process that has to stay alive. Once I wanted the same settings to work on Hyprland and niri too, a daemon was the right shape after all. That became [cosmolith](#b:fanout). [~](#b:mood-clicked)
+## Looking back
+
+The daemon approach lost during GSoC, because for a single compositor a file Sway already reads is simpler than a process that has to stay alive.
+
+Once I wanted the same settings to work on Hyprland and niri too, a daemon was the right shape after all. That became [cosmolith](#b:fanout). [~](#b:mood-clicked)
