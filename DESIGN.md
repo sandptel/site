@@ -62,5 +62,5 @@ Motion: branches drawn by scroll in both directions · cards settle with ease-ou
 - Guardrail: `npm run perf` (budgets in `scripts/perf.mjs`).
 
 ## Posts (2026-11)
-- On desktop, a post's margin cards show only while their paragraph is being read: they open as the word passes ~60% of the screen and fold once the paragraph has scrolled near the top. Clicking a word pins its card open. Journey cards and phone (inline) cards stay open once grown.
+- On desktop, a post's margin cards show only while their paragraph is being read: they open as the word passes ~60% of the screen and fold once the paragraph has scrolled near the top. Clicking a word opens its card early (it still folds with its paragraph). Cards dodge only the cards open at the same time, so each sits level with its word. Journey cards and phone (inline) cards stay open once grown.
 - Posts are split into numbered `##` sections; the reading bar shows the current section. Header: report repo + GSoC project page, an at-a-glance list (`glance` in frontmatter), and a contents line.

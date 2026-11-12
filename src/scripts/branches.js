@@ -182,22 +182,30 @@
       const bodyTop = rel(G.col.getBoundingClientRect()).top;
       const last = { L: -1e9, R: -1e9 }; let maxB = 0;
       const sorted = G.top.slice().sort((a, c) => a.ar.top - c.ar.top || a.idx - c.idx);
+      // journey cards all stay open, so each one stacks under the last. A post's cards are only on screen while their
+      // paragraph is read, so a card dodges just the ones open at the same time and otherwise sits level with its word.
+      const vhNow = innerHeight, placed = [];
+      const busy = (sd, b) => G.journey ? last[sd]
+        : placed.reduce((m, a) => a.side === sd && a.pb - vhNow * .1 > b.trig - vhNow * .85 ? Math.max(m, a.bottom) : m, -1e9);
       sorted.forEach(b => {
+        b.trig = G.docTop + b.ar.top;
+        // posts: where the card's paragraph ends, so the card can fold once it has been read
+        if (!G.journey) b.pb = G.docTop + rel((b.para || b.anchor.closest('p')).getBoundingClientRect()).bottom;
         let side = b.want;
         if (!side && b.kind === 'mood') {
-          side = last.L <= last.R ? 'L' : 'R';
+          side = busy('L', b) <= busy('R', b) ? 'L' : 'R';
           b.ar.left = side === 'L' ? colL - 40 : colR + 16; b.ar.right = b.ar.left + 24;
         }
         if (!side) {
           // pick the side that keeps the card closest to its word: push-down cost + length of the run between the lines
           const want0 = b.ar.top - 14, mid = b.ar.left + b.ar.width / 2;
-          const cost = sd => Math.max(0, last[sd] + 22 - want0) + .45 * (sd === 'L' ? mid - colL : colR - mid);
+          const cost = sd => Math.max(0, busy(sd, b) + 22 - want0) + .45 * (sd === 'L' ? mid - colL : colR - mid);
           side = cost('L') <= cost('R') ? 'L' : 'R';
         }
         b.side = side; const dir = side === 'R' ? 1 : -1; b.dir = dir;
         b.tx = side === 'R' ? colR + gap : colL - gap - b.w;
         const want = b.kind === 'word' ? b.ar.top - 14 : b.ar.top + b.ar.height / 2 - 30;
-        b.ty = Math.max(want, last[side] + (G.journey ? 22 : 32));
+        b.ty = Math.max(want, busy(side, b) + (G.journey ? 22 : 32));
         let total = b.h, sy = b.h + 20;
         // open subs stack under their parent; a closed one waits at the next free spot
         b.subs.forEach(s => {
@@ -206,6 +214,7 @@
           if (s.open) { total = Math.max(total, s.oy + s.h); sy += s.h + 14; }
         });
         last[side] = b.ty + total; maxB = Math.max(maxB, last[side]);
+        placed.push({ side, pb: b.pb, bottom: b.ty + total });
         // geometry anchors
         if (b.kind === 'word') {
           b.sx = b.ar.left + b.ar.width * (.3 + .4 * rnd(b.seed + 7));
@@ -213,9 +222,6 @@
         } else {
           b.sx = side === 'R' ? b.ar.right : b.ar.left; b.sy = b.gy = b.ar.top + b.ar.height / 2; b.ex = b.sx + dir * 12;
         }
-        b.trig = G.docTop + (b.kind === 'word' ? b.ar.top : b.ar.top);
-        // posts: where the card's paragraph ends, so the card can fold once it has been read
-        if (!G.journey) b.pb = G.docTop + rel((b.para || b.anchor.closest('p')).getBoundingClientRect()).bottom;
         b.attach = b.kind === 'mood' ? 14 : 24;
       });
       // writes
@@ -464,8 +470,9 @@
         // phone: cards land as they rise past the thumb, not a third of the screen later
         let target = (ALL || reduce) ? 1 : G.mobile ? clamp((sy + vh * 1.02 - b.trig) / (vh * .2) - b.stagger, 0, 1) : clamp((sy + vh * .8 - b.trig) / (vh * .28) - b.stagger, 0, 1);
         // in a post (desktop margins) a card is there while its paragraph is being read, and folds once it has scrolled past
-        if (!G.journey && !G.mobile && !ALL && !reduce) target = Math.min(clamp((sy + vh * .85 - b.trig) / (vh * .22) - b.stagger, 0, 1), clamp((b.pb - sy - vh * .1) / (vh * .15), 0, 1));
-        if (b.pinned) target = 1;
+        const post = !G.journey && !G.mobile && !ALL && !reduce, fall = post ? clamp((b.pb - sy - vh * .1) / (vh * .15), 0, 1) : 1;
+        if (post) target = Math.min(clamp((sy + vh * .85 - b.trig) / (vh * .22) - b.stagger, 0, 1), fall);
+        if (b.pinned) target = fall; // pinned: open now, but a post's card still folds once its paragraph has gone by
         const rate = target < b.p && dirNow === 'up' ? 4.2 : 9; // rewinding folds a touch slower, so you see it
         b.p = (ALL || reduce) ? target : b.p + (target - b.p) * Math.min(1, dt * rate);
         if (Math.abs(b.p - target) < .002) b.p = target;
