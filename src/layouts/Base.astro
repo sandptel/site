@@ -9,7 +9,7 @@ interface Props {
   description?: string;
   wash?: boolean; // mood washes, for posts
 }
-const { title, description = 'Sandeep Patel: Rust, Nix and Wayland. Systems work, written so it branches as you read.', wash = false } = Astro.props;
+const { title, description = 'Sandeep Patel works on the Linux desktop: compositors, shells and the daemons between them, mostly in Rust and Nix.', wash = false } = Astro.props;
 const fullTitle = title ? `${title} · Sandeep Patel` : 'Sandeep Patel';
 const nav = [
   ['/#journey', 'journey'],

@@ -15,11 +15,10 @@ const cards = flat('project'), leaves = flat('leaf');
 ---
 <Base title="Projects">
   <section class="list-page wrap">
-    <p class="kicker">projects</p>
-    <h1>Work, without the tree</h1>
-    <p>The same cards as the journey, flat and newest first. The journey has the nested explanations.</p>
+    <h1>Projects</h1>
+    <p>Everything from the journey, newest first.</p>
     <ul class="projects">{cards.map(c => <li set:html={c} />)}</ul>
-    <h2 class="sec-h small-branches">Small branches</h2>
+    <h2 class="sec-h small-branches">Smaller things</h2>
     <ul class="projects">{leaves.map(c => <li set:html={c} />)}</ul>
   </section>
 </Base>

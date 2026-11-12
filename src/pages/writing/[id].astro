@@ -1,13 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { weave, withBase } from '../../lib/ui';
+import { weave, withBase, icon, seal } from '../../lib/ui';
 
 export async function getStaticPaths() {
   const posts = await getCollection('writing', ({ data }) => !data.draft);
   return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
 }
 const { post } = Astro.props;
+const { repo, marks } = post.data;
 // branches are woven into the rendered markdown at build time, so they exist without JS
 const body = weave(post.rendered?.html ?? '', post.data.branches);
 ---
@@ -15,6 +16,8 @@ const body = weave(post.rendered?.html ?? '', post.data.branches);
   <article class="grove" data-grove>
     <svg class="roots" aria-hidden="true"></svg>
     <header class="col post-head">
+      {repo && <a class="repo-top mono" href={repo}><Fragment set:html={icon('github')} /><span>{repo.replace(/^https:\/\//, '')}</span><i aria-hidden="true">↗</i></a>}
+      {marks.length > 0 && <p class="marks" aria-hidden="true" set:html={marks.map(m => seal(m)).join('<i></i>')} />}
       <p class="kicker">writing</p>
       <h1>{post.data.title}</h1>
       <p class="dateline mono">{post.data.dateline ?? post.data.date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</p>
@@ -22,6 +25,7 @@ const body = weave(post.rendered?.html ?? '', post.data.branches);
     <div class="col body" set:html={body} />
     <footer class="col post-foot mono">
       <a href={withBase('/writing')}>← all writing</a>
+      {repo && <a href={repo}>the original report ↗</a>}
       <a href={withBase('/#journey')}>where this sits in the journey →</a>
     </footer>
   </article>

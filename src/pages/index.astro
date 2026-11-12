@@ -29,7 +29,7 @@ const FACE_A = [
   `In 2023–24 I was the hall's ${T('gsec', 'General Secretary of Technology')}, organising its teams across the inter-hall ${T('gc', 'Technology General Championship')}; RK Hall took gold twice during my years there. Earlier, I wrote technical articles for ${T('unstop', 'Unstop')} and spent a summer as a research intern at the ${T('coeamt', 'Centre of Excellence in Advanced Manufacturing')}.`,
 ];
 const FACE_B = [
-  `Hi, I'm <b class="me">Sandeep Patel</b>. I build the parts of Linux you touch but rarely see: ${T('compositor', 'compositors')}, shells, and the ${T('daemon', 'daemons')} between them, mostly in Rust and reproducible with ${T('nix', 'Nix')}.`,
+  `Hi, I'm <b class="me">Sandeep Patel</b>. I work on the Linux desktop: ${T('compositor', 'compositors')}, shells, and the ${T('daemon', 'daemons')} between them, mostly in Rust and built with ${T('nix', 'Nix')}.`,
   `Over two ${T('gsoc', 'Google Summers of Code')} with ${T('ccx', 'CCExtractor')} I brought the Regolith desktop to NixOS and then onto ${T('cosmic', 'COSMIC')}, and I worked on the shell of ${T('mecha', 'Mecha')}'s Comet handheld. These days I'm building ${T('wado', 'wado')}.`,
 ];
 const TERMS: { id: string; seal?: string; title: string; body: string; href?: string }[] = [
@@ -70,7 +70,7 @@ const TERMS: { id: string; seal?: string; title: string; body: string; href?: st
           <div class="face-text fb" inert>{FACE_B.map(p => <p set:html={p} />)}</div>
         </div>
       </div>
-      <p class="about-more rise" style="--d:2">I occasionally <Fragment set:html={A('/writing', 'write at length')} /> about what I build, and the <a href="#journey">journey below</a> has the details. You can find me on <a href={GITHUB}>GitHub</a> and <a href={LINKEDIN}>LinkedIn</a>, or write to <button type="button" class="copy inline" data-copy={EMAIL}><span>{EMAIL}</span><i aria-hidden="true">copy</i></button>.</p>
+      <p class="about-more rise" style="--d:2">Both GSoC projects are <Fragment set:html={A('/writing', 'written up properly')} />, and the <a href="#journey">journey below</a> has everything else. You can find me on <a href={GITHUB}>GitHub</a> and <a href={LINKEDIN}>LinkedIn</a>, or write to <button type="button" class="copy inline" data-copy={EMAIL}><span>{EMAIL}</span><i aria-hidden="true">copy</i></button>.</p>
       <a class="now mono rise" style="--d:3" href="https://github.com/sandptel/wado">
         <span class="now-row"><span class="live" aria-hidden="true"></span><span class="now-t">now · <b>building wado</b>, a headless Wayland compositor that streams over WebRTC</span></span>
         <span class="now-x"><span class="now-in"><span class="gh"><Fragment set:html={icon('github')} /><span>github.com/sandptel/<b>wado</b></span></span><span class="tags"><i>Rust</i><i>Smithay</i><i>VA-API</i><i>pre-alpha</i></span><i class="now-arr" aria-hidden="true">↗</i></span></span>
@@ -103,10 +103,10 @@ const TERMS: { id: string; seal?: string; title: string; body: string; href?: st
 
   <section id="journey" class="grove journey" data-grove data-journey aria-labelledby="journey-h">
     <svg class="roots" aria-hidden="true"></svg>
-    <header class="jhead" data-nr data-name="Journey" data-desc={`2021 → now, ${JOURNEY.length} stops on one trunk`}>
+    <header class="jhead" data-nr data-name="Journey" data-desc={`2021 → now, ${JOURNEY.length} stops`}>
       <p class="kicker">journey</p>
       <h2 id="journey-h">2021 → now</h2>
-      <p class="mono">one trunk, many branches</p>
+      <p class="mono">oldest first</p>
       <ul class="niches" aria-label="Filter by niche">
         {(Object.keys(NICHES) as Niche[]).map(k => (
           <li>
@@ -131,18 +131,18 @@ const TERMS: { id: string; seal?: string; title: string; body: string; href?: st
     </div>
   </section>
 
-  <section class="list-page wrap home-writing" aria-labelledby="writing-h" data-nr data-name="Writing" data-desc="Posts that branch as you read them">
+  <section class="list-page wrap home-writing" aria-labelledby="writing-h" data-nr data-name="Writing" data-desc="The two GSoC write-ups">
     <p class="kicker">writing</p>
-    <h2 id="writing-h" class="sec-h">Posts that branch</h2>
+    <h2 id="writing-h" class="sec-h">Writing</h2>
     <ul class="entries">
       {posts.map(p => (
         <li><a class="row" href={withBase(`/writing/${p.id}`)}><span class="t">{p.data.title}</span><time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</time>{p.data.summary && <span class="s">{p.data.summary}</span>}</a></li>
       ))}
     </ul>
   </section>
-  <section class="places wrap" id="places" aria-labelledby="places-h" data-nr data-name="Places" data-desc="Every organisation on the tree, in one wall">
-    <h2 id="places-h">Places the tree passed through</h2>
-    <p>Everywhere above, in one wall.</p>
+  <section class="places wrap" id="places" aria-labelledby="places-h" data-nr data-name="Places" data-desc="Organisations, in one place">
+    <h2 id="places-h">Places</h2>
+    <p>Where the work above happened.</p>
     <ul class="wall">
       {PLACES.map((p, i) => (
         <li style={`--i:${i}`}>
@@ -155,9 +155,9 @@ const TERMS: { id: string; seal?: string; title: string; body: string; href?: st
     </ul>
   </section>
 
-  <section class="coda wrap" aria-labelledby="coda-h" data-nr data-name="End of the tree" data-desc="For now. Rewind it, or open what you skipped">
-    <p class="kicker" id="coda-h">end of the tree, for now</p>
-    <p class="coda-line">You opened <b data-explored>0</b> of <span data-explore-total>0</span> branches on this page. <span class="coda-more">Every dotted word, card and node has more folded inside.</span></p>
-    <button class="rewind" type="button">rewind the tree <span aria-hidden="true">↑</span></button>
+  <section class="coda wrap" aria-labelledby="coda-h" data-nr data-name="The end" data-desc="Say hello, or go back up">
+    <p class="kicker" id="coda-h">that's all for now</p>
+    <p class="coda-line">Thanks for scrolling this far. If you're working on something close to this, I'd like to hear about it: <button type="button" class="copy inline" data-copy={EMAIL}><span>{EMAIL}</span><i aria-hidden="true">copy</i></button>.</p>
+    <button class="rewind" type="button">back to the top <span aria-hidden="true">↑</span></button>
   </section>
 </Base>

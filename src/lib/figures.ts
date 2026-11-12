@@ -4,6 +4,10 @@
 import iconsJson from '../data/icons.json';
 
 const I = iconsJson as Record<string, { title: string; path: string }>;
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+// a real screenshot: wipes in once when its card lands; credit sits under it
+const shot = (src: string, alt: string, w: number, h: number, credit: string, cls = '') =>
+  `<figure class="fig fig-shot ${cls}"><img src="${BASE}${src}" alt="${alt}" width="${w}" height="${h}" loading="lazy" decoding="async"><figcaption>${credit}</figcaption></figure>`;
 const ico = (n: string) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="${I[n].path}"/></svg>`;
 
 const FIGS: Record<string, () => string> = {
@@ -20,10 +24,10 @@ const FIGS: Record<string, () => string> = {
   // one config change fanned out to each compositor's IPC
   fanout: () => `<div class="fig fig-fanout" role="img" aria-label="cosmolith sends one event to Hyprland, Sway and niri, each in its own IPC">
     <div class="src"><span class="dot"></span>cosmolith<small>Event::Input{accel: 0.4}</small></div>
-    <svg class="wires" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
+    <div class="wb"><svg class="wires" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true">
       <path d="M150 0 C150 40, 50 40, 50 90"/><path d="M150 0 L150 90"/><path d="M150 0 C150 40, 250 40, 250 90"/>
     </svg>
-    <span class="pk p1"></span><span class="pk p2"></span><span class="pk p3"></span>
+    <span class="pk p1"></span><span class="pk p2"></span><span class="pk p3"></span></div>
     <div class="dst">
       <span>${ico('hyprland')}<b>Hyprland</b><small>hyprctl</small></span>
       <span>${ico('sway')}<b>Sway</b><small>swaymsg</small></span>
@@ -151,6 +155,86 @@ const FIGS: Record<string, () => string> = {
     <div class="bar"><span class="fill"></span><i style="--x:0"></i><i style="--x:.8"></i><i style="--x:1"></i></div>
     <p><span>2021</span><span>B.Tech</span><span>M.Tech · 2026</span></p>
   </div>`,
+
+  // ---- GSoC '24 write-up ----
+  regolith: () => shot('/writing/regolith.webp', 'Stock Regolith: a terminal in the middle, the keybinding list on the right, a bar along the bottom', 960, 540, 'Stock Regolith · image from regolith-desktop.com'),
+  ilia: () => shot('/writing/ilia.webp', 'ilia, Regolith\'s launcher, listing applications', 440, 660, 'ilia, the launcher · regolith-desktop.com', 'tall'),
+
+  // a derivation: declared inputs go into a sandbox, one store path comes out
+  derivation: () => `<div class="fig fig-drv" role="img" aria-label="Source, dependencies and build steps go into a sandbox with no network; out comes one path in the Nix store">
+    <div class="in"><span style="--i:0">source</span><span style="--i:1">dependencies</span><span style="--i:2">build steps</span></div>
+    <div class="box">${ico('nixos')}<span>sandbox</span><small>no network · nothing undeclared</small></div>
+    <code class="out">/nix/store/<b>q8n1w2…</b>-ilia</code>
+  </div>`,
+
+  // the typical fix: a Debian path rewritten to point into the store
+  fhs: () => `<pre class="fig fig-diff" role="img" aria-label="A line that runs /usr/bin/sway is rewritten to run sway from its own path in the Nix store"><span class="d0">  # regolith-session</span>
+<span class="dm">- exec /usr/bin/sway</span>
+<span class="dp">+ exec ${'${sway}'}/bin/sway</span></pre>`,
+
+  // each package is its own flake, so any distro with Nix can run it
+  nixrun: () => `<pre class="fig fig-term sm" role="img" aria-label="nix run github:sandptel/ilia fetches, builds and runs the launcher"><span class="l l1"><i>$</i> nix run github:sandptel/ilia</span>
+<span class="l l2">  fetching sandptel/ilia</span>
+<span class="l l3">  building /nix/store/…-ilia</span>
+<span class="l l4"><b class="live">  running</b><b class="caret"></b></span></pre>`,
+
+  // ---- GSoC '25 write-up ----
+  // before / after: drag (or arrow-key) the divider
+  compare: () => `<div class="fig fig-cmp" style="--x:50">
+    <img src="${BASE}/writing/cosmic-settings-fork.webp" alt="After: the cosmic-settings fork on Sway, next to the config file it just wrote" width="960" height="540" loading="lazy" decoding="async">
+    <img class="before" src="${BASE}/writing/regolith-settings.webp" alt="Before: GNOME Settings inside Regolith" width="960" height="540" loading="lazy" decoding="async">
+    <span class="split" aria-hidden="true"><i></i></span>
+    <span class="tag l" aria-hidden="true">before</span><span class="tag r" aria-hidden="true">after</span>
+    <input type="range" min="0" max="100" value="50" aria-label="Slide between GNOME Settings (before) and the cosmic-settings fork (after)">
+  </div>`,
+
+  // the two ways a change could reach Sway; tabs switch between them
+  methods: () => `<div class="fig fig-meth" data-m="a">
+    <div class="tabs" role="tablist" aria-label="Two approaches">
+      <button type="button" role="tab" aria-selected="true" data-m="a">generated config<small>kept</small></button>
+      <button type="button" role="tab" aria-selected="false" data-m="b">background daemon</button>
+    </div>
+    <div class="lane la" role="tabpanel">
+      <p class="row"><span>cosmic-settings</span><i></i><span>swayipc</span><i></i><span>sway</span></p>
+      <p class="row sub"><span class="file">generated-config.d</span><small>Sway reads it on every start</small></p>
+      <ul><li class="y">Regolith can add, remove or change pages</li><li class="y">nothing extra left running</li></ul>
+    </div>
+    <div class="lane lb" role="tabpanel">
+      <p class="row"><span>~/.config/cosmic</span><i></i><span>daemon</span><i></i><span>sway</span></p>
+      <p class="row sub"><span class="file">watching</span><small>replays every setting on each start</small></p>
+      <ul><li class="n">has to stay running</li><li class="n">can't add settings pages</li><li class="y">came back later, as cosmolith</li></ul>
+    </div>
+  </div>`,
+
+  // the file the fork writes, from the demo: a new file appears, the value changes
+  genconf: () => `<div class="fig fig-gen" role="img" aria-label="generated-config.d gains a file named 10-keyboard-repeat-delay that sets repeat_delay to 200">
+    <p class="dir">~/.config/regolith3/sway/<wbr>cosmic-settings/<wbr>generated-config.d/</p>
+    <ul><li>10-keyboard-xkb-options</li><li class="new">10-keyboard-repeat-delay</li></ul>
+    <pre><span class="c"># Generated by COSMIC Settings - Keyboard Repeat Delay</span>
+input type:keyboard {
+    repeat_delay <b class="val"><i>600</i><i>200</i></b>
+}</pre>
+  </div>`,
+
+  // the real thing: screen recording from the report, played only while on screen
+  demo: () => `<figure class="fig fig-vid"><video muted loop playsinline preload="none" width="960" height="540" poster="${BASE}/writing/cosmic-settings-fork.webp" aria-label="Screen recording: changing key repeat delay in the forked cosmic-settings writes a file into generated-config.d">
+    <source src="${BASE}/writing/cosmic-settings-demo.webm" type="video/webm"><source src="${BASE}/writing/cosmic-settings-demo.mp4" type="video/mp4"></video>
+    <figcaption>recorded July 2025, on Sway</figcaption></figure>`,
+
+  // the rest of the GNOME-era session, swapped piece by piece
+  replaced: () => {
+    const pairs = [['swaybg', 'cosmic-bg'], ['swayidle', 'cosmic-idle'], ['nautilus', 'cosmic-files'], ['gnome-session-quit', 'systemctl · loginctl'], ['xdg-desktop-portal', '…-portal-cosmic']];
+    return `<ul class="fig fig-pairs" role="img" aria-label="${pairs.map(([a, b]) => `${a} replaced by ${b}`).join(', ')}">${pairs.map(([a, b], i) => `<li style="--i:${i}"><s>${a}</s><i aria-hidden="true"></i><b>${b}</b></li>`).join('')}</ul>`;
+  },
+
+  // where it stood at the end of the summer, honestly
+  checklist: () => {
+    const items: [string, 'y' | 'h' | 'n', string?][] = [
+      ['Display, input and power settings', 'y'], ['Appearance: wallpaper, COSMIC theme', 'y'], ['cosmic-bg, -idle, -osd, desktop portal', 'y'], ['Session starts cosmic-session with Sway', 'y'],
+      ['Keyboard shortcuts', 'h', 'partial'], ['Tested on Ubuntu', 'h', 'Debian next'], ['Workspaces, window rules, startup apps', 'n'], ['Beta release', 'n'],
+    ];
+    return `<ul class="fig fig-todo">${items.map(([t, s, note], i) => `<li class="${s}" style="--i:${i}"><svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6"/>${s === 'n' ? '' : `<path d="M4 7.2l2 2 4-4.4" pathLength="1"/>`}</svg><span>${t}</span>${note ? `<small>${note}</small>` : ''}<span class="sr">${s === 'y' ? 'done' : s === 'h' ? 'in progress' : 'not started'}</span></li>`).join('')}</ul>`;
+  },
 };
 
 export function figure(name: string) {

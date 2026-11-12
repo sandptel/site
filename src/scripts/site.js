@@ -124,6 +124,25 @@ $$('.fig-wado').forEach(fig => {
   });
 });
 
+/* ---------- write-ups: before/after slider, the two-approach tabs, the demo recording ---------- */
+$$('.fig-cmp').forEach(fig => $('input', fig).addEventListener('input', e => { fig.classList.add('touched'); fig.style.setProperty('--x', e.target.value); }));
+$$('.fig-meth').forEach(fig => $$('[role=tab]', fig).forEach(t => t.addEventListener('click', () => {
+  fig.dataset.m = t.dataset.m;
+  $$('[role=tab]', fig).forEach(o => o.setAttribute('aria-selected', String(o === t)));
+})));
+// plays only while on screen, never by itself under reduced motion; click or enter holds it
+const reel = new IntersectionObserver(es => es.forEach(({ target: v, isIntersecting: on }) => {
+  if (!on) v.pause(); else if (!reduce() && !v.dataset.held) v.play().catch(() => {});
+}), { threshold: .4 });
+$$('.fig-vid video').forEach(v => {
+  reel.observe(v); v.tabIndex = 0;
+  v.addEventListener('play', () => v.parentElement.classList.add('playing'));
+  v.addEventListener('pause', () => v.parentElement.classList.remove('playing'));
+  const toggle = () => { if (v.paused) { delete v.dataset.held; v.play(); } else { v.dataset.held = 1; v.pause(); } };
+  v.addEventListener('click', toggle);
+  v.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+});
+
 /* ---------- copy the email address (shown as text too, in case clipboard is refused) ---------- */
 $$('.copy[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
   const label = $('i', btn);
@@ -141,7 +160,7 @@ function notice(html, ms = 5200) {
   requestAnimationFrame(() => n.classList.add('on'));
   setTimeout(() => { n.classList.remove('on'); setTimeout(() => n.remove(), 450); }, ms);
 }
-document.addEventListener('explored:all', () => notice('<b>Every branch on this page, opened.</b> Thank you for reading closely.'));
+document.addEventListener('explored:all', () => notice('<b>You opened every note on this page.</b> More than I expected anyone to.'));
 
 /* ---------- hero: a few words in the bio grow their definitions ---------- */
 const hb = $('.hero-branch'), hero = $('#hero');

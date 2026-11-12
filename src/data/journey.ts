@@ -72,7 +72,7 @@ export const JOURNEY: Stop[] = [
     cards: {
       gsoc24: {
         type: 'project', seal: 'ccx', want: 'R', size: 'xl', dates: 'Jun — Sep 2024', title: 'Regolith, on NixOS',
-        href: 'https://summerofcode.withgoogle.com/programs/2024/projects/kWEY5sJj', role: 'Google Summer of Code · CCExtractor',
+        href: '/writing/regolith-on-nixos', role: 'Google Summer of Code · CCExtractor',
         gist: 'Packaged a full Linux desktop so it installs with one line.',
         body: 'Turned Regolith, a Debian desktop, into a NixOS module built from [nix derivations](#sub:derivation), with every path fixed for a system that has no [FHS](#sub:fhs).',
         figure: 'nixcollapse',
@@ -82,7 +82,7 @@ export const JOURNEY: Stop[] = [
         ],
         metrics: [[15, '+', 'packages'], [2, '', 'architectures']],
         icons: ['nixos', 'githubactions', 'qemu', 'i3', 'sway'],
-        links: [['GSoC project', 'https://summerofcode.withgoogle.com/programs/2024/projects/kWEY5sJj'], ['report', 'https://github.com/sandptel/gsoc24'], ['regolith-nix', 'https://github.com/regolith-lab/regolith-nix']],
+        links: [['the write-up', '/writing/regolith-on-nixos'], ['GSoC project', 'https://summerofcode.withgoogle.com/programs/2024/projects/kWEY5sJj'], ['report', 'https://github.com/sandptel/gsoc24'], ['regolith-nix', 'https://github.com/regolith-lab/regolith-nix']],
         subs: {
           derivation: { type: 'define', title: 'nix derivation', body: 'A recipe that builds a package from only its declared inputs, so it comes out the same on any machine.' },
           fhs: { type: 'define', title: 'FHS', body: 'The usual Linux layout: `/usr/bin`, `/etc` and so on. NixOS doesn\'t use it, so hard-coded paths have to point into `/nix/store` instead.' },
@@ -144,8 +144,8 @@ export const JOURNEY: Stop[] = [
       cosmic: {
         type: 'project', seal: 'popos', want: 'L', size: 's', dates: 'May — Jun 2025', title: 'COSMIC',
         href: 'https://github.com/pop-os/cosmic-epoch', role: 'Contributor · System76',
-        gist: 'Fixes for System76\'s new Rust desktop, before its alpha.',
-        body: 'Small fixes to applets and settings panels while COSMIC was still early.',
+        gist: 'Fixes for System76\'s new Rust desktop, during its alpha.',
+        body: 'Bugs I ran into while building Regolith\'s COSMIC session, fixed upstream.',
         points: ['Repaired the Nix build for cosmic-applets', 'Fixed a left-Alt keyboard bug in cosmic-settings'],
         icons: ['popos', 'rust', 'iced', 'nixos'],
       },
@@ -158,18 +158,18 @@ export const JOURNEY: Stop[] = [
         type: 'project', seal: 'ccx', want: 'R', size: 'xl', dates: 'Jun — Sep 2025', title: 'Regolith, on COSMIC',
         href: '/writing/regolith-on-cosmic', role: 'Google Summer of Code · CCExtractor',
         gist: 'Moved Regolith off GNOME and onto COSMIC.',
-        body: 'Replaced Regolith\'s GNOME parts with Rust components from COSMIC, then moved the settings bridge into a [daemon](#sub:fdpoll) that any compositor can use.',
+        body: 'Replaced Regolith\'s GNOME parts with Rust components from COSMIC, including a fork of cosmic-settings that drives Sway over [IPC](#sub:ipc).',
         figure: 'swap',
         points: [
           'Settings apply instantly and survive a restart',
-          'Works with Sway, Hyprland and niri',
+          'Display, input, power and appearance settings working on Sway',
           'One CI pipeline builds, tests and caches the session',
         ],
         metrics: [[8, '+', 'apps reworked'], [40, '%', 'lighter start-up']],
         icons: ['rust', 'wayland', 'iced', 'debian', 'sway'],
         links: [['the write-up', '/writing/regolith-on-cosmic'], ['GSoC project', 'https://summerofcode.withgoogle.com/programs/2025/projects/mV0VlVwv'], ['report', 'https://github.com/sandptel/gsoc25']],
         subs: {
-          fdpoll: { type: 'define', title: 'fd polling', body: 'Waiting for a file to change instead of checking on a timer, so the daemon only wakes when there is work.' },
+          ipc: { type: 'define', title: 'IPC', body: 'Inter-process communication. Sway listens on a socket, and anything that speaks its protocol can change its settings live.' },
         },
       },
     },

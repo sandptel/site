@@ -535,7 +535,8 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .fig-fanout .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--live); }
 .fig-fanout .wires { width: 100%; height: 56px; display: block; }
 .fig-fanout .wires path { fill: none; stroke: var(--faint); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 3 3; }
-.fig-fanout .pk { position: absolute; top: 34px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--accent); opacity: 0; }
+.fig-fanout .wb { position: relative; width: 100%; }
+.fig-fanout .pk { position: absolute; top: -3px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--accent); opacity: 0; }
 .landed .fig-fanout .pk { animation: pk 2.8s var(--ease) infinite; }
 .fig-fanout .p1 { --x: -33.3cqw; } .fig-fanout .p3 { --x: 33.3cqw; }
 .fig-fanout { container-type: inline-size; }
@@ -606,6 +607,9 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .fig-swap .new .via:nth-of-type(2) { animation-delay: .15s !important; } .fig-swap .new .via:nth-of-type(3) { animation-delay: .3s !important; }
 @keyframes arrive { 0%, 28% { opacity: .15; transform: translateX(6px); } 42%, 92% { opacity: 1; transform: none; } 100% { opacity: .15; } }
 .fig-swap .arrow { color: var(--accent); font-size: 18px; }
+/* in a narrow margin card the before/after columns stack */
+.fig-swap { container-type: inline-size; }
+@container (max-width: 340px) { .fig-swap .cols { grid-template-columns: 1fr; } .fig-swap .arrow { justify-self: center; transform: rotate(90deg); line-height: 1; } }
 .fig-swap .weight { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; margin-top: 12px; }
 .fig-swap .weight .lbl { margin: 0 !important; padding: 0; border: 0; background: none; }
 .fig-swap .bar { position: relative; height: 8px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
@@ -777,6 +781,158 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .landed .fig-degree .fill { transform: scaleX(1); transition: transform 1.6s var(--ease) .2s; }
 .fig-degree i { position: absolute; top: -3px; left: calc(var(--x) * 100% - 5px); width: 10px; height: 10px; border-radius: 50%; background: var(--panel); border: 1.5px solid var(--accent); }
 .fig-degree p { display: flex; justify-content: space-between; font: 10.5px var(--f-mono); color: var(--muted); }
+
+/* ============ write-ups (the GSoC posts) ============ */
+/* the report's repository comes first; then the two marks the post moves between, joined once on load */
+.repo-top { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 26px; padding: 6px 13px 6px 10px; font-size: 12px; color: var(--fg); text-decoration: none; border: 1px solid var(--rule); border-radius: 999px; background: var(--panel); transition: border-color var(--t1) var(--ease), color var(--t1) var(--ease); }
+.repo-top .ico { font-size: 15px; }
+.repo-top i { font-style: normal; color: var(--accent); transition: transform var(--t2) var(--ease); }
+.repo-top:hover, .repo-top:focus-visible { border-color: var(--accent); color: var(--accent); }
+.repo-top:hover i { transform: translate(2px, -2px); }
+.post-head .marks { display: flex; align-items: center; margin: 0 0 20px; }
+.post-head .marks .seal { --s: 42px; }
+.post-head .marks i { position: relative; width: 48px; height: 1px; margin: 0 10px; background: repeating-linear-gradient(90deg, var(--accent) 0 3px, transparent 3px 6px); transform-origin: left; animation: tick .9s var(--ease-emph) .35s both; }
+.post-head .marks i::after { content: ""; position: absolute; right: -2px; top: -2px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.post-head .marks .seal:last-child { animation: wSeal .5s var(--ease-emph) 1.05s both; }
+@keyframes wSeal { from { opacity: 0; transform: scale(.85); } }
+/* code blocks, coloured by the theme (only the post's own, not the figures' <pre>s inside cards) */
+.body > pre { --astro-code-foreground: var(--fg); --astro-code-background: var(--sunk); --astro-code-token-constant: var(--ember); --astro-code-token-string: var(--live); --astro-code-token-comment: var(--muted); --astro-code-token-keyword: var(--nest); --astro-code-token-parameter: var(--danger); --astro-code-token-function: var(--accent); --astro-code-token-string-expression: var(--live); --astro-code-token-punctuation: var(--muted); --astro-code-token-link: var(--cyan);
+  margin: -.3em 0 1.6em; padding: 12px 16px; font: 14px/1.6 var(--f-mono); background: var(--sunk); border-left: 2px solid var(--accent); overflow-x: auto; }
+.body > pre code { background: none; padding: 0; font-size: inherit; }
+
+/* a real screenshot: wipes down once when its card lands */
+.fig-shot img { display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--rule); background: var(--sunk); }
+.fig-shot.tall img { width: auto; max-width: 100%; max-height: 260px; margin-inline: auto; }
+.fig-shot figcaption, .fig-vid figcaption { margin-top: 6px; font: 10.5px var(--f-mono); color: var(--muted); }
+.landed .fig-shot img { animation: wUnveil .9s var(--ease-emph) .15s both; }
+@keyframes wUnveil { from { clip-path: inset(0 0 100% 0); } }
+
+/* derivation: inputs drop into the sandbox, a store path comes out */
+.fig-drv { --T: 6s; display: grid; justify-items: center; gap: 8px; font: 11px/1.2 var(--f-mono); }
+.fig-drv .in { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.fig-drv .in span { padding: 4px 8px; border: 1px solid var(--rule); border-radius: 999px; background: var(--sunk); color: var(--muted); }
+.landed .fig-drv .in span { animation: wDrop var(--T) var(--ease) infinite; animation-delay: calc(var(--i) * 120ms); }
+@keyframes wDrop { 0%, 8% { transform: none; opacity: 1; } 26%, 88% { transform: translateY(24px) scale(.85); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.fig-drv .box { position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 9px; align-items: center; width: min(100%, 260px); padding: 9px 12px; border: 1px dashed var(--accent); border-radius: var(--radius); background: color-mix(in srgb, var(--accent) 5%, var(--panel)); }
+.fig-drv .box::after { content: ""; position: absolute; inset: -5px; border: 4px solid color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 4px; opacity: 0; }
+.landed .fig-drv .box::after { animation: wRing var(--T) var(--ease) infinite; }
+@keyframes wRing { 0%, 22% { opacity: 0; } 30%, 44% { opacity: 1; } 54%, 100% { opacity: 0; } }
+.fig-drv .box .ico { grid-row: span 2; font-size: 20px; color: var(--accent); }
+.fig-drv .box small { color: var(--muted); font-size: 10px; }
+.fig-drv .out { font-size: 11.5px; padding: 6px 10px; background: var(--sunk); border: 1px solid var(--rule); white-space: nowrap; }
+.fig-drv .out b { color: var(--live); font-weight: 400; }
+.landed .fig-drv .out { animation: wEmit var(--T) steps(22, end) infinite; }
+@keyframes wEmit { 0%, 44% { clip-path: inset(0 100% 0 0); } 64%, 92% { clip-path: inset(0); } 100% { clip-path: inset(0 100% 0 0); } }
+
+.fig-term.sm { font-size: 10.5px; }
+/* a path fix, as a diff */
+.fig-diff { font: 11px/1.75 var(--f-mono); background: var(--sunk); border: 1px solid var(--rule); padding: 10px 12px; margin: 10px 0 4px; white-space: pre; overflow-x: auto; color: var(--muted); }
+.fig-diff span { display: inline-block; }
+.fig-diff .dm { color: var(--danger); } .fig-diff .dp { color: var(--live); }
+.landed .fig-diff .dm { animation: wRm 6s var(--ease) infinite; }
+.landed .fig-diff .dp { animation: wAdd 6s steps(40, end) infinite; }
+@keyframes wRm { 0% { opacity: .45; } 8%, 24% { opacity: 1; } 36%, 100% { opacity: .45; } }
+@keyframes wAdd { 0%, 30% { clip-path: inset(0 100% 0 0); } 60%, 100% { clip-path: inset(0); } }
+
+/* before / after: the divider follows a drag or the arrow keys; it peeks once on landing */
+@property --x { syntax: '<number>'; inherits: true; initial-value: 50; }
+.fig-cmp { position: relative; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; border: 1px solid var(--rule); background: var(--sunk); }
+.fig-cmp img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.fig-cmp .before { clip-path: inset(0 calc(100% - var(--x) * 1%) 0 0); }
+.fig-cmp .split { position: absolute; inset: 0; transform: translateX(calc(var(--x) * 1%)); pointer-events: none; }
+.fig-cmp .split::before { content: ""; position: absolute; left: -1px; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 0 1px rgb(0 0 0 / .2); }
+.fig-cmp .split i { position: absolute; left: -14px; top: 50%; width: 28px; height: 28px; margin-top: -14px; border-radius: 50%; background: var(--panel); border: 1px solid var(--rule); box-shadow: var(--shadow); }
+.fig-cmp .split i::before { content: "‹ ›"; display: block; font: 13px/26px var(--f-mono); text-align: center; color: var(--accent); }
+.fig-cmp .tag { position: absolute; top: 8px; padding: 2px 8px; font: 10px var(--f-mono); letter-spacing: .06em; color: #fff; background: rgb(0 0 0 / .55); border-radius: 999px; pointer-events: none; }
+.fig-cmp .tag.l { left: 8px; } .fig-cmp .tag.r { right: 8px; }
+.fig-cmp input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.fig-cmp:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.landed .fig-cmp:not(.touched) { animation: wPeek 2.4s var(--ease) .6s both; }
+@keyframes wPeek { 0% { --x: 50; } 35% { --x: 24; } 72% { --x: 72; } 100% { --x: 50; } }
+
+/* two approaches, as tabs */
+.fig-meth { font: 11px/1.3 var(--f-mono); }
+.fig-meth .tabs { display: flex; border-bottom: 1px solid var(--rule); margin-bottom: 10px; }
+.fig-meth .tabs button { position: relative; flex: 1; display: flex; justify-content: center; align-items: center; gap: 6px; padding: 7px 6px 8px; font: inherit; color: var(--muted); background: none; border: 0; cursor: pointer; transition: color var(--t1) var(--ease); }
+.fig-meth .tabs button::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--accent); transform: scaleX(0); transition: transform var(--t2) var(--ease); }
+.fig-meth .tabs button:hover, .fig-meth .tabs [aria-selected="true"] { color: var(--fg); }
+.fig-meth .tabs [aria-selected="true"]::after { transform: none; }
+.fig-meth .tabs small { font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--live); border: 1px solid color-mix(in srgb, var(--live) 45%, transparent); padding: 0 5px; border-radius: 999px; }
+.fig-meth .lane { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; animation: wLane var(--t3) var(--ease-emph); }
+.fig-meth[data-m="a"] .lb, .fig-meth[data-m="b"] .la { display: none; }
+@keyframes wLane { from { opacity: 0; transform: translateY(4px); } }
+.fig-meth .row { display: flex; align-items: center; gap: 4px; margin: 0 !important; }
+.fig-meth .row span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 6px; font-size: 10.5px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sunk); white-space: nowrap; }
+.fig-meth .row .ico { color: var(--accent); }
+.fig-meth .row i { position: relative; flex: 1; min-width: 14px; height: 1px; background: var(--faint); overflow: hidden; }
+.fig-meth .row i::after { content: ""; position: absolute; inset: -1px 0; background: linear-gradient(90deg, transparent 40%, var(--accent) 40% 60%, transparent 60%); transform: translateX(-100%); }
+.landed .fig-meth .row i::after { animation: wFlow 2s var(--ease) infinite; }
+.fig-meth .row span + i + span + i::after { animation-delay: .45s !important; }
+@keyframes wFlow { 60%, 100% { transform: translateX(100%); } }
+.fig-meth .row.sub { padding-left: 14px; gap: 8px; flex-wrap: wrap; color: var(--muted); }
+.fig-meth .row.sub .file { border-style: dashed; color: var(--fg); }
+.fig-meth .row.sub small { font-size: 10px; }
+.fig-meth ul { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 3px; font: 14px/1.4 var(--f-body); }
+.fig-meth li { display: flex; gap: 8px; align-items: baseline; }
+.fig-meth li::before { content: "+"; flex: none; width: 10px; font: 11px var(--f-mono); color: var(--live); }
+.fig-meth li.n::before { content: "−"; color: var(--danger); }
+
+/* the generated file: it appears, then its value changes */
+.fig-gen { --T: 7s; font: 11px/1.45 var(--f-mono); border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sunk); overflow: hidden; }
+.fig-gen .dir { margin: 0 !important; padding: 6px 10px; font-size: 10.5px; color: var(--muted); border-bottom: 1px solid var(--rule); }
+.fig-gen ul { list-style: none; margin: 0; padding: 6px 10px; display: grid; gap: 2px; }
+.fig-gen li::before { content: ""; display: inline-block; width: 7px; height: 9px; margin-right: 7px; border: 1px solid var(--faint); border-radius: 1px; vertical-align: -1px; }
+.fig-gen .new { color: var(--accent); }
+.fig-gen pre { margin: 0; padding: 8px 10px 10px; border-top: 1px dashed var(--rule); background: var(--panel); white-space: pre-wrap; color: var(--fg); }
+.fig-gen .c { color: var(--muted); }
+.fig-gen .val { display: inline-grid; vertical-align: bottom; height: 1.45em; overflow: hidden; color: var(--live); font-weight: 400; }
+.fig-gen .val i { grid-area: 1 / 1; font-style: normal; }
+.fig-gen .val i:first-child { opacity: 0; transform: translateY(-100%); }
+.landed .fig-gen .new { animation: wNew var(--T) var(--ease) infinite; }
+.landed .fig-gen pre { animation: wPre var(--T) var(--ease) infinite; }
+.landed .fig-gen .val i:first-child { animation: wOut var(--T) var(--ease) infinite; }
+.landed .fig-gen .val i:last-child { animation: wIn var(--T) var(--ease) infinite; }
+@keyframes wNew { 0%, 8% { opacity: 0; transform: translateX(-6px); } 16%, 92% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+@keyframes wPre { 0%, 16% { opacity: 0; } 24%, 92% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes wOut { 0%, 40% { opacity: 1; transform: none; } 48%, 100% { opacity: 0; transform: translateY(-100%); } }
+@keyframes wIn { 0%, 40% { opacity: 0; transform: translateY(100%); } 48%, 100% { opacity: 1; transform: none; } }
+
+/* the recording: plays while on screen, a click holds it */
+.fig-vid video { display: block; width: 100%; height: auto; border-radius: 4px; border: 1px solid var(--rule); background: var(--sunk); cursor: pointer; }
+.fig-vid video:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fig-vid figcaption { display: flex; align-items: center; gap: 7px; }
+.fig-vid figcaption::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--faint); }
+.fig-vid.playing figcaption::before { background: var(--danger); animation: led 1.6s ease-in-out infinite; }
+
+/* swapped components: old fades, an arrow grows, the new one lands */
+.fig-pairs { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 4px; font: 10.5px/1.2 var(--f-mono); }
+.fig-pairs li { display: grid; grid-template-columns: 1fr 20px 1fr; align-items: center; gap: 6px; }
+.fig-pairs s, .fig-pairs b { padding: 5px 7px; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--sunk); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fig-pairs s { color: var(--muted); opacity: .6; }
+.fig-pairs b { color: var(--fg); border-color: color-mix(in srgb, var(--accent) 50%, var(--rule)); }
+.fig-pairs i { position: relative; height: 1px; background: var(--accent); transform-origin: left; }
+.fig-pairs i::after { content: ""; position: absolute; right: -1px; top: -3px; border: 3.5px solid transparent; border-left: 5px solid var(--accent); border-right: 0; }
+.landed .fig-pairs s { animation: wFade 8s var(--ease) infinite; animation-delay: calc(var(--i) * 240ms); }
+.landed .fig-pairs i { animation: wGrow 8s var(--ease) infinite; animation-delay: calc(var(--i) * 240ms); }
+.landed .fig-pairs b { animation: wLand 8s var(--ease) infinite; animation-delay: calc(var(--i) * 240ms); }
+@keyframes wFade { 0%, 6% { opacity: 1; } 16%, 90% { opacity: .6; } 100% { opacity: 1; } }
+@keyframes wGrow { 0%, 8% { transform: scaleX(0); } 18%, 90% { transform: none; } 100% { transform: scaleX(0); } }
+@keyframes wLand { 0%, 14% { opacity: 0; transform: translateX(-6px); } 24%, 90% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* where it stood: ticks draw in once */
+.fig-todo { list-style: none; margin: 10px 0 4px; padding: 0; display: grid; gap: 6px; font-size: 14.5px; line-height: 1.35; }
+.fig-todo li { display: grid; grid-template-columns: 14px 1fr auto; gap: 9px; align-items: center; }
+.fig-todo svg { width: 14px; height: 14px; overflow: visible; }
+.fig-todo circle { fill: none; stroke: var(--faint); stroke-width: 1.2; transform-box: fill-box; transform-origin: center; }
+.fig-todo path { fill: none; stroke: var(--bg); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; }
+.fig-todo .y circle { fill: var(--live); stroke: var(--live); }
+.fig-todo .h circle { stroke: var(--warn); stroke-dasharray: 2 2; } .fig-todo .h path { stroke: var(--warn); }
+.fig-todo .n { color: var(--muted); }
+.fig-todo small { font: 10px var(--f-mono); color: var(--warn); }
+.landed .fig-todo .y circle { animation: wDot .4s var(--ease-emph) both; animation-delay: calc(var(--i) * 110ms + 200ms); }
+.landed .fig-todo path { animation: wTick .5s var(--ease) both; animation-delay: calc(var(--i) * 110ms + 320ms); }
+@keyframes wDot { from { transform: scale(.4); opacity: 0; } }
+@keyframes wTick { from { stroke-dashoffset: 1; } }
 
 /* ============ journey ============ */
 .journey { padding-top: 40px; }

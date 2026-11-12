@@ -8,9 +8,8 @@ const posts = (await getCollection('writing', ({ data }) => !data.draft))
 ---
 <Base title="Writing">
   <section class="list-page wrap">
-    <p class="kicker">writing</p>
-    <h1>Posts that branch</h1>
-    <p>Long-form notes from the work. Unfamiliar words grow explanations as you scroll.</p>
+    <h1>Writing</h1>
+    <p>So far, my two GSoC reports, rewritten to be easier to read. Dotted words open a short note.</p>
     <ul class="entries">
       {posts.map(p => (
         <li><a class="row" href={withBase(`/writing/${p.id}`)}><span class="t">{p.data.title}</span><time datetime={p.data.date.toISOString()}>{p.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</time>{p.data.summary && <span class="s">{p.data.summary}</span>}</a></li>

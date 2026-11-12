@@ -11,4 +11,6 @@ export default defineConfig({
   // internal pages are fetched the moment a pointer or thumb lands on a link
   integrations: [dedupeIcons()],
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
+  // code blocks take their colours from the page's base16 theme (--astro-code-* in global.css)
+  markdown: { shikiConfig: { theme: 'css-variables' } },
 });

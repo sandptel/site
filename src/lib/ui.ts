@@ -31,6 +31,8 @@ const SEALS: Record<string, { label: string; img?: string; icon?: string }> = {
   github: { label: 'GitHub', icon: 'github' },
   wayland: { label: 'Wayland', icon: 'wayland' },
   svelte: { label: 'Svelte', icon: 'svelte' },
+  sway: { label: 'Sway', icon: 'sway' },
+  gnome: { label: 'GNOME', icon: 'gnome' },
 };
 export function seal(key: string, cls = '') {
   const s = SEALS[key];
@@ -75,7 +77,9 @@ function cardInner(id: string, b: Branch, nested: boolean) {
     case 'mood':
       return `<p class="ctype">mood</p><p class="mood-line">${inline(b.body)}</p>`;
     case 'define':
-      return `${head}<h3>${title(b.title ?? id, b.link)}<em>n.</em></h3><p>${inline(b.body)}</p>`;
+      return b.seal
+        ? `<header class="hb-h">${seal(b.seal)}<div>${head}<h3>${title(b.title ?? id, b.link)}</h3></div></header><p>${inline(b.body)}</p>`
+        : `${head}<h3>${title(b.title ?? id, b.link)}<em>n.</em></h3><p>${inline(b.body)}</p>`;
     case 'aside':
       return `${head}<p class="path">${esc(b.title ?? '').replace(/\//g, '/<wbr>')}</p><p>${inline(b.body)}</p>`;
     case 'diagram': {

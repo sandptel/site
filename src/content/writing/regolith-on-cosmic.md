@@ -1,20 +1,23 @@
 ---
 title: Swapping GNOME out of Regolith for COSMIC
 date: 2025-09-15
-summary: My second Google Summer of Code. Rebuilding a tiling desktop's session on Rust components, and the daemon that fell out of it.
+summary: My second Google Summer of Code. Regolith's GNOME parts replaced with COSMIC ones, and a settings app that talks to Sway.
 dateline: GSoC 2025 · CCExtractor · mentor Soumya Ranjan Patnaik
+repo: https://github.com/sandptel/gsoc25
+marks: [gnome, popos]
 branches:
   regolith:
-    type: define
-    title: Regolith
-    body: Ubuntu-based desktop. i3/Sway tiling plus GNOME's system parts.
-    link: https://regolith-desktop.com
+    type: figure
+    figure: regolith
+    wide: true
+    body: Stock Regolith. i3 or Sway does the tiling, GNOME does the settings.
   mutter:
     type: define
     title: Mutter
     body: GNOME's compositor and window manager. Regolith pulled it in only to get GNOME's settings working.
   wayland:
     type: define
+    seal: wayland
     title: Wayland
     body: The protocol between apps and the display server. On Wayland the [compositor](#sub:compositor) *is* the display server.
     subs:
@@ -25,16 +28,27 @@ branches:
   wlroots:
     type: define
     title: wlroots
-    body: A library of compositor building blocks. Sway is built on it, Mutter isn't, which is why GNOME-specific protocols don't carry over.
+    body: A library of compositor building blocks. Sway is built on it and Mutter isn't, which is why GNOME-specific protocols don't carry over.
   cosmic:
     type: figure
     figure: cosmic
     wide: true
     body: System76's Rust desktop, built with the iced GUI toolkit. Drawn here in this page's own base16 theme, the way COSMIC would theme itself.
-  mood-longest:
-    type: mood
-    tone: hard
-    body: the part that took the longest
+  swap:
+    type: figure
+    figure: swap
+    wide: true
+    body: Four GNOME-era pieces out, one fork in.
+  compare:
+    type: figure
+    figure: compare
+    wide: true
+    body: Drag across. Left is GNOME Settings in stock Regolith, right is the fork running on Sway.
+  methods:
+    type: figure
+    figure: methods
+    wide: true
+    body: Both apply a change through swayipc. Where they differ is how a setting survives a restart.
   ipc:
     type: diagram
     title: IPC
@@ -51,13 +65,35 @@ branches:
         title: socket
         body: A file-like endpoint two processes use to talk. Sway listens on `$SWAYSOCK`.
   genconf:
-    type: aside
-    title: ~/.config/regolith3/sway/cosmic-settings/generated-config.d/*
-    body: Loaded by Sway on start, so a change made in the settings app survives a restart.
-  daemon:
-    type: define
-    title: daemon
-    body: A background program with no window. It starts with the session and just listens.
+    type: figure
+    figure: genconf
+    body: Sway includes this folder from its main config. The file is the one written in the recording below.
+  demo:
+    type: figure
+    figure: demo
+    wide: true
+    body: The fork on Sway. Change a setting, and the file manager on the left picks up the new file.
+  replaced:
+    type: figure
+    figure: replaced
+    body: Mostly a few lines each in regolith-wm-config ([#56](https://github.com/regolith-linux/regolith-wm-config/pull/56)).
+  session:
+    type: diagram
+    title: session
+    steps:
+      - { label: regolith-session }
+      - { label: dbus-run-session }
+      - { label: cosmic-session }
+      - { label: sway, note: starts the rest }
+    cmd: exec dbus-run-session -- cosmic-session sway -c "$SWAY_CONFIG_FILE"
+  checklist:
+    type: figure
+    figure: checklist
+    body: As it stood in the final report.
+  mood-moving:
+    type: mood
+    tone: hard
+    body: building on something that kept moving.
   fanout:
     type: figure
     figure: fanout
@@ -66,17 +102,23 @@ branches:
   mood-clicked:
     type: mood
     tone: good
-    body: "the moment it clicked: one translation layer, any compositor."
+    body: same idea, better timing.
 ---
 
-[Regolith](#b:regolith) is a productivity-focused desktop that pairs tiling window managers, Sway and i3, with GNOME parts for settings and system management. That hybrid works, but GNOME's dependencies, the [Mutter](#b:mutter) compositor and its custom [Wayland](#b:wayland) protocols, make it hard to keep things modular, especially on [wlroots](#b:wlroots)-based compositors like Sway.
+[Regolith](#b:regolith) pairs a tiling window manager, Sway or i3, with parts of GNOME for settings and system management. It works, but the GNOME half brings [Mutter](#b:mutter) and its own [Wayland](#b:wayland) protocols along, and those don't sit well with [wlroots](#b:wlroots) compositors like Sway.
 
-[COSMIC](#b:cosmic), System76's new desktop written in Rust, is modular by design. So the project for my second Google Summer of Code was to rebuild Regolith's session on COSMIC components: keep the tiling feel, drop the GNOME baggage.
+[COSMIC](#b:cosmic), System76's desktop written in Rust, is built from small separate pieces. So for my second GSoC, again with CCExtractor, the plan was to swap Regolith's GNOME parts for COSMIC ones and keep everything else.
 
-The biggest piece was settings. Regolith ran four things to manage input, display and power: `gnome-control-center` plus `regolith-inputd`, `regolith-powerd` and `regolith-displayd`. I forked cosmic-settings to replace all four. [~](#b:mood-longest)
+The biggest piece was settings. Regolith ran `gnome-control-center` plus three small daemons for input, display and power. I forked cosmic-settings to [replace all four](#b:swap). Here are [the old one and the new one](#b:compare) side by side.
 
-Every time you change a setting, the fork sends the matching Sway command over [IPC](#b:ipc) (via swayipc-rs), so it applies instantly. It also writes the setting to a [generated config](#b:genconf) file, so it survives a restart. If two settings conflict, Sway reports it.
+I tried [two ways](#b:methods) of getting a change from the settings app into Sway. The one I kept sends each change to Sway over [IPC](#b:ipc), so it applies straight away, and also writes it to a [generated config](#b:genconf) file that Sway loads on start, so it survives a restart. If two settings clash, Sway reports it like any other config error.
 
-Across the summer that meant re-architecting eight COSMIC session apps and activating Wayland services only when they're needed, which cut the session's startup dependency weight by about 40%. Seventeen core components now build, test and cache through one reproducible CI pipeline.
+Here it is [working](#b:demo): change the key repeat delay and a new file shows up in that folder.
 
-Afterwards I pulled that bridge out into its own [daemon](#b:daemon), cosmolith, which watches COSMIC's config and translates every change into whatever IPC language the running [compositor speaks](#b:fanout). [~](#b:mood-clicked)
+The rest of the session [moved over](#b:replaced) the same way, one component at a time, and the [session script](#b:session) now starts `cosmic-session` next to Sway. Across the summer that came to eight session apps reworked and roughly 40% less pulled in at startup.
+
+It isn't finished. COSMIC itself wasn't stable yet, so I'd call this a working beta. Display, input, power and appearance work, shortcuts are partial, workspaces are still on the list, and I've only tested on Ubuntu. [Here's where it stood](#b:checklist). [~](#b:mood-moving)
+
+I also sent two small fixes upstream, to [cosmic-settings](https://github.com/pop-os/cosmic-settings/pull/1227) and [cosmic-applets](https://github.com/pop-os/cosmic-applets/pull/948).
+
+One thing I like looking back: the daemon approach lost during GSoC, because for a single compositor a file Sway already reads is simpler than a process that has to stay alive. Once I wanted the same settings to work on Hyprland and niri too, a daemon was the right shape after all. That became [cosmolith](#b:fanout). [~](#b:mood-clicked)

@@ -17,6 +17,7 @@ const branch: z.ZodType<any> = z.lazy(() =>
     steps: z.array(z.object({ label: z.string(), note: z.string().optional() })).optional(), // diagram
     cmd: z.string().optional(), // diagram
     figure: z.string().optional(), // name from src/lib/figures.ts
+    seal: z.string().optional(), // define: a logo beside the title (SEALS in src/lib/ui.ts)
     subs: z.record(z.string(), branch).optional(),
   }),
 );
@@ -28,6 +29,8 @@ const writing = defineCollection({
     date: z.coerce.date(),
     summary: z.string().optional(),
     dateline: z.string().optional(),
+    repo: z.string().url().optional(), // shown first, above the title
+    marks: z.array(z.string()).default([]), // seals for the header, joined by a line: from → to
     draft: z.boolean().default(false),
     branches: z.record(z.string(), branch).default({}),
   }),
