@@ -60,3 +60,7 @@ Motion: branches drawn by scroll in both directions · cards settle with ease-ou
 - Compass needles are separate composited SVG layers; the "now" LED glow breathes with opacity/scale; header blur is off on touch screens.
 - Photo flips: an early turn at ~1.4s, then 5s, 10s, 15s, then every 20s; only while the bio is on screen and nobody is reading/hovering it. The text box eases to the height of the side showing.
 - Guardrail: `npm run perf` (budgets in `scripts/perf.mjs`).
+
+## Posts (2026-11)
+- On desktop, a post's margin cards show only while their paragraph is being read: they open as the word passes ~60% of the screen and fold once the paragraph has scrolled near the top. Clicking a word pins its card open. Journey cards and phone (inline) cards stay open once grown.
+- Posts are split into numbered `##` sections; the reading bar shows the current section. Header: report repo + GSoC project page, an at-a-glance list (`glance` in frontmatter), and a contents line.

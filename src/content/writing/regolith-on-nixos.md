@@ -77,32 +77,72 @@ branches:
 
 ## The goal
 
-My first Google Summer of Code, with CCExtractor, was about getting [Regolith](#b:regolith) onto [NixOS](#b:nixos). Regolith is a tiling desktop made for Ubuntu and Debian. NixOS describes the whole system in one config file.
+My first Google Summer of Code, with CCExtractor, was about getting [Regolith](#b:regolith) onto [NixOS](#b:nixos). Regolith is a tiling desktop made for Ubuntu and Debian: i3 or Sway for the windows, with GNOME's parts underneath for settings. NixOS describes the whole system in one config file.
 
-The goal was for someone on NixOS to get the full desktop with one option:
+The two don't fit together on their own. Regolith ships as Debian packages that expect to live in `/usr` and `/etc`, and NixOS installs nothing there. So the project was to rebuild Regolith out of Nix's own building blocks, until someone on NixOS could get the full desktop with one option:
 
 ```nix
 wayland.regolith.enable = true;
 ```
 
+## How Nix builds things
+
+Everything in Nix starts as a [derivation](#b:derivation): a recipe that says what to build, from which sources, with which dependencies, and how. Nix runs it in a sandbox that can only see what the recipe declares, which is why the result comes out the same on any machine.
+
+The output doesn't go to `/usr/bin`. It lands in its own folder in the Nix store, and NixOS links the packages you've asked for into `/run/current-system/sw`. Packaging something for NixOS mostly means writing that recipe, and making sure the program still finds everything once it lives at a path like that.
+
 ## Fifteen packages
 
-To get there, every piece of Regolith had to become a [derivation](#b:derivation). By the end of the summer I had fifteen of them.
+By the end of the summer I had derivations for fifteen parts of Regolith. Ten of them are programs you can run, including the session itself, Regolith's Sway build, the [launcher](#b:ilia) and its input, display and power daemons:
 
-They cover the session scripts, Regolith's Sway build, the [launcher](#b:ilia), the notification daemon, the input, display and power daemons, and a few packages that are only config files.
+- `regolith-session`, `sway-regolith`, `trawld`, `ilia`, `remontoire`
+- `i3xrocks`, `xrescat`, `regolith-displayd`, `regolith-inputd`, `regolith-powerd`
+
+The other five have no binary of their own. They are a library, the default look, and the configs that tie the session together:
+
+- `libtrawldb`, `regolith-look-default`, `regolith-wm-config`
+- `regolith-sway-root-config`, `rofication`
 
 ## The hard part: paths
 
-Regolith expects a [normal filesystem layout](#b:fhs), with binaries in `/usr/bin` and configs in `/etc/regolith`. NixOS doesn't have one.
+Regolith expects a [normal filesystem layout](#b:fhs). Its scripts call programs at `/usr/bin/…`, its configs sit in `/etc/regolith`, and pieces of it find each other by those fixed locations. On NixOS none of those paths exist.
 
-A lot of the summer went into finding those paths and pointing them at the Nix store instead. [~](#b:mood-paths)
+A lot of the summer went into finding those paths, one package at a time, and pointing them at the Nix store instead. Most fixes were a line or two each. Finding them was the slow part, because a missed path usually doesn't fail the build, it fails later when the session starts. [~](#b:mood-paths)
 
-## Where it ended up
+## Trying it
 
-The Wayland session [boots](#b:session) from the flake. Every package is also its own flake, so you can [try one by itself](#b:nixrun), on NixOS or on any distro with Nix installed.
+The Wayland session [boots](#b:session) from the flake. On NixOS that takes three steps: turn on flakes, add the repo as an input, and import its module.
 
-What I didn't finish that summer was the [full module](#b:module), where every part (launcher, notifications, colour scheme, GDM) is an option you can swap.
+```nix
+nix.settings.experimental-features = [ "nix-command" "flakes" ];
+```
+
+```nix
+inputs.regolith.url = "github:sandptel/regolith-nix";
+# and in nixosSystem's modules:
+inputs.regolith.nixosModules.regolith
+```
+
+After a rebuild, `regolith-session-wayland` starts the desktop.
+
+Every package is also its own flake, so you can [try one by itself](#b:nixrun), on NixOS or on any other distro once Nix is installed. If you want all fifteen at once, `nix develop github:sandptel/regolith-nix` drops you into a shell that has them.
+
+## What I didn't finish
+
+The goal was a [full module](#b:module), where each part of the desktop is an option you can swap. This is the shape I was aiming for:
+
+```nix
+wayland.regolith = {
+  enable = true;
+  launcher = pkgs.ilia;
+  notification-manager = pkgs.rofication;
+  color-scheme = "gruvbox-dark";
+  gdm.enable = true;
+};
+```
+
+By the end of GSoC the packages and the session worked, but those options were still to come.
 
 ## After GSoC
 
-That module is what the repo has grown into since. It moved to the regolith-lab organisation, and I've [kept maintaining it](#b:after).
+That module is what the repo has grown into since. It moved to the regolith-lab organisation, picked up binary caching so nobody has to compile everything, got separate builds per app, and gained a VM to test the whole desktop in. I've [kept maintaining it](#b:after).

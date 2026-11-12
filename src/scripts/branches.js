@@ -161,8 +161,8 @@
     if (!mobile) {
       const gutter = colL;
       const gap = G.journey ? 70 : clamp(gutter - 270, 40, 76);
-      const cw = G.journey ? clamp(gutter - gap - 40, 240, 400) : clamp(gutter - gap - 70, 200, 252);
-      const subOff = clamp(gutter - gap - cw - 22, 0, 50);
+      const cw = G.journey ? clamp(gutter - gap - 40, 240, 400) : clamp(gutter - gap - 70, 200, 290);
+      const subOff = clamp(gutter - gap - Math.min(cw + 24, gutter - gap - 16) - 6, 0, 50); // nested cards stay on screen even under a wide parent
       // writes: widths
       // journey cards are sized by how much they matter (data-size); post branches keep one width
       const SCALE = { xl: 1, l: .9, m: .8, s: .68 }, room = Math.min(gutter - gap - 16, 480);
@@ -197,7 +197,7 @@
         b.side = side; const dir = side === 'R' ? 1 : -1; b.dir = dir;
         b.tx = side === 'R' ? colR + gap : colL - gap - b.w;
         const want = b.kind === 'word' ? b.ar.top - 14 : b.ar.top + b.ar.height / 2 - 30;
-        b.ty = Math.max(want, last[side] + 22);
+        b.ty = Math.max(want, last[side] + (G.journey ? 22 : 32));
         let total = b.h, sy = b.h + 20;
         // open subs stack under their parent; a closed one waits at the next free spot
         b.subs.forEach(s => {
@@ -214,6 +214,8 @@
           b.sx = side === 'R' ? b.ar.right : b.ar.left; b.sy = b.gy = b.ar.top + b.ar.height / 2; b.ex = b.sx + dir * 12;
         }
         b.trig = G.docTop + (b.kind === 'word' ? b.ar.top : b.ar.top);
+        // posts: where the card's paragraph ends, so the card can fold once it has been read
+        if (!G.journey) b.pb = G.docTop + rel((b.para || b.anchor.closest('p')).getBoundingClientRect()).bottom;
         b.attach = b.kind === 'mood' ? 14 : 24;
       });
       // writes
@@ -461,6 +463,8 @@
       for (const b of G.top) {
         // phone: cards land as they rise past the thumb, not a third of the screen later
         let target = (ALL || reduce) ? 1 : G.mobile ? clamp((sy + vh * 1.02 - b.trig) / (vh * .2) - b.stagger, 0, 1) : clamp((sy + vh * .8 - b.trig) / (vh * .28) - b.stagger, 0, 1);
+        // in a post (desktop margins) a card is there while its paragraph is being read, and folds once it has scrolled past
+        if (!G.journey && !G.mobile && !ALL && !reduce) target = Math.min(clamp((sy + vh * .85 - b.trig) / (vh * .22) - b.stagger, 0, 1), clamp((b.pb - sy - vh * .1) / (vh * .15), 0, 1));
         if (b.pinned) target = 1;
         const rate = target < b.p && dirNow === 'up' ? 4.2 : 9; // rewinding folds a touch slower, so you see it
         b.p = (ALL || reduce) ? target : b.p + (target - b.p) * Math.min(1, dt * rate);

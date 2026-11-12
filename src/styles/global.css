@@ -376,6 +376,11 @@ h1.name .l2 { color: var(--accent); }
 .card .cap { color: var(--muted); font-size: 14.5px; }
 .card.t-aside { background: var(--sunk); border-style: dashed; box-shadow: none; }
 .card.t-aside .path { font: 12.5px/1.6 var(--f-mono); color: var(--accent); word-break: break-word; margin-bottom: 6px; }
+/* post cards breathe a little more than journey ones */
+.grove:not(.journey) .card:not(.t-mood) { padding: 18px 20px 20px; line-height: 1.6; }
+.grove:not(.journey) .card p + p, .grove:not(.journey) .card .fig + p, .grove:not(.journey) .card p + .fig { margin-top: .85em; }
+.grove:not(.journey) .card .fig { margin: 14px 0 8px; }
+.grove:not(.journey) .card .ctype { margin-bottom: 10px !important; }
 .card.t-mood { background: none; border: 0; box-shadow: none; padding: 4px 10px; }
 .card.t-mood .mood-line { font: italic 21px/1.35 var(--f-body); color: var(--ember); }
 .card.t-mood.tone-good .mood-line { color: var(--live); }
@@ -424,7 +429,7 @@ main, footer { position: relative; z-index: 1; }
 .h-link:hover, .h-link:focus-visible { background-size: 100% 1px; color: var(--accent); }
 .h-link .arr { display: inline-block; margin-left: .3em; font: 400 .62em var(--f-mono); color: var(--accent); opacity: .55; transform: translate(-3px, 1px); transition: transform var(--t2) var(--ease), opacity var(--t2) var(--ease); }
 .h-link:hover .arr, .h-link:focus-visible .arr { opacity: 1; transform: translate(2px, -2px); }
-.pts { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; font-size: 14.5px; line-height: 1.45; }
+.pts { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 9px; font-size: 14.5px; line-height: 1.45; }
 .pts li { position: relative; padding-left: 18px; }
 .pts li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 9px; height: 1px; background: var(--accent); transform-origin: left; }
 .pts li::after { content: ""; position: absolute; left: 10px; top: calc(.62em - 2px); width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
@@ -456,7 +461,7 @@ main, footer { position: relative; z-index: 1; }
 .more-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t3) var(--ease); }
 .card.open .more-wrap { grid-template-rows: 1fr; }
 .more-in { min-height: 0; overflow: hidden; opacity: 0; transform: translateY(-6px); transition: opacity var(--t2) var(--ease-in), transform var(--t2) var(--ease-in); }
-.more-in > :first-child { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.more-in > :first-child { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--rule); }
 .card.open .more-in { opacity: 1; transform: none; transition: opacity var(--t3) var(--ease) 120ms, transform var(--t3) var(--ease-emph) 120ms; }
 .more { display: flex; align-items: center; gap: 10px; width: calc(100% + 32px); margin: 14px -16px -15px; padding: 10px 16px; cursor: pointer; text-align: left;
   font: 10.5px/1.2 var(--f-mono); letter-spacing: .04em; color: var(--muted); background: color-mix(in srgb, var(--sunk) 60%, transparent); border: 0; border-top: 1px dashed var(--rule);
@@ -813,10 +818,19 @@ html:not(.js) .more-wrap { grid-template-rows: 1fr; } html:not(.js) .more-in { o
 .body > h2 { counter-increment: sec; position: relative; margin: 2.4em 0 .7em; font: 400 26px/1.2 var(--f-term); scroll-margin-top: 90px; }
 .body > h2:first-child { margin-top: 0; }
 .body > h2::before { content: counter(sec, decimal-leading-zero); display: block; margin-bottom: 6px; font: 11px var(--f-mono); letter-spacing: .14em; color: var(--accent); }
+.body > ul, .body > ol { margin: -.3em 0 1.5em; padding-left: 1.3em; display: grid; gap: .35em; }
+.body > ul li::marker { color: var(--accent); }
+.body > ol li::marker { font: 13px var(--f-mono); color: var(--accent); }
+.body > table { width: 100%; margin: 0 0 1.6em; border-collapse: collapse; font-size: 15.5px; line-height: 1.4; }
+.body > table th, .body > table td { padding: 9px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+.body > table th { font: 10.5px var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+.body > table td:first-child { color: var(--muted); }
+.body > table tr > :nth-child(2) { background: color-mix(in srgb, var(--live) 6%, transparent); }
+@media (max-width: 520px) { .body > table { font-size: 14px; } .body > table th, .body > table td { padding: 7px 6px; } }
 .entries .also { display: flex; gap: 16px; margin: -10px 0 16px 4px; font-size: 11.5px; }
 /* code blocks, coloured by the theme (only the post's own, not the figures' <pre>s inside cards) */
 .body > pre { --astro-code-foreground: var(--fg); --astro-code-background: var(--sunk); --astro-code-token-constant: var(--ember); --astro-code-token-string: var(--live); --astro-code-token-comment: var(--muted); --astro-code-token-keyword: var(--nest); --astro-code-token-parameter: var(--danger); --astro-code-token-function: var(--accent); --astro-code-token-string-expression: var(--live); --astro-code-token-punctuation: var(--muted); --astro-code-token-link: var(--cyan);
-  margin: -.3em 0 1.6em; padding: 12px 16px; font: 14px/1.6 var(--f-mono); background: var(--sunk); border-left: 2px solid var(--accent); overflow-x: auto; }
+  margin: -.3em 0 1.6em; padding: 12px 16px; font: 14px/1.6 var(--f-mono); background: var(--sunk); border-left: 2px solid var(--accent); overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .body > pre code { background: none; padding: 0; font-size: inherit; }
 
 /* a real screenshot: wipes down once when its card lands */
